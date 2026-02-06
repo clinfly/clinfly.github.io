@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinfly - Affordable Healthcare in Turkey</title>
+    <meta name="description" content="Clinfly connects you with top clinics in Turkey for hair transplants and aesthetic procedures. Quality care, affordable prices.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --blue: #2563EB;
+            --blue-light: #EFF6FF;
+            --dark: #1E293B;
+            --gray: #64748B;
+            --gray-light: #F8FAFC;
+            --border: #E2E8F0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--dark);
+            background: #fff;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* NAV */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+        }
+
+        .nav-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--blue);
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+        }
+
+        .nav-right a {
+            font-size: 14px;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .nav-right a:hover { color: var(--blue); }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-blue {
+            background: var(--blue);
+            color: #fff;
+        }
+
+        .btn-blue:hover {
+            background: #1D4ED8;
+        }
+
+        .btn-outline {
+            border: 1.5px solid var(--border);
+            color: var(--dark);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        .btn-green {
+            background: #22C55E;
+            color: #fff;
+        }
+
+        .btn-green:hover { background: #16A34A; }
+
+        /* HERO */
+        .hero {
+            padding: 160px 24px 100px;
+            text-align: center;
+        }
+
+        .hero-tag {
+            display: inline-block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--blue);
+            background: var(--blue-light);
+            padding: 6px 14px;
+            border-radius: 6px;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1.15;
+            letter-spacing: -0.5px;
+            margin-bottom: 18px;
+            color: var(--dark);
+        }
+
+        .hero p {
+            font-size: 17px;
+            color: var(--gray);
+            max-width: 520px;
+            margin: 0 auto 36px;
+            line-height: 1.7;
+        }
+
+        .hero-btns {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-top: 64px;
+            padding-top: 48px;
+            border-top: 1px solid var(--border);
+        }
+
+        .stat { text-align: center; }
+        .stat-num {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+        .stat-label {
+            font-size: 13px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        /* SECTION */
+        section {
+            padding: 96px 24px;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+
+        .section-title h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .section-title p {
+            font-size: 16px;
+            color: var(--gray);
+        }
+
+        /* SERVICES */
+        .services-section {
+            background: var(--gray-light);
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px 28px;
+        }
+
+        .card-icon {
+            font-size: 28px;
+            margin-bottom: 16px;
+        }
+
+        .card h3 {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .card p {
+            font-size: 14px;
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        /* WHY */
+        .why-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .why-item {
+            display: flex;
+            gap: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .why-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+            width: 44px;
+            height: 44px;
+            background: var(--blue-light);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .why-item h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .why-item p {
+            font-size: 13px;
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        /* STEPS */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .step {
+            text-align: center;
+        }
+
+        .step-num {
+            width: 40px;
+            height: 40px;
+            background: var(--blue);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0 auto 14px;
+        }
+
+        .step h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .step p {
+            font-size: 13px;
+            color: var(--gray);
+            line-height: 1.5;
+        }
+
+        /* CTA */
+        .cta {
+            text-align: center;
+            background: var(--dark);
+            color: #fff;
+            border-radius: 16px;
+            max-width: 1100px;
+            margin: 0 auto 96px;
+            padding: 64px 24px;
+        }
+
+        .cta h2 {
+            font-size: 30px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .cta p {
+            font-size: 15px;
+            color: #94A3B8;
+            margin-bottom: 28px;
+        }
+
+        .cta-btns {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn-white {
+            background: #fff;
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .btn-white:hover { background: #F1F5F9; }
+
+        /* FOOTER */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 48px 24px;
+        }
+
+        .footer-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .footer-left .logo { margin-bottom: 10px; display: block; }
+
+        .footer-left p {
+            font-size: 13px;
+            color: var(--gray);
+            max-width: 280px;
+            line-height: 1.6;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 48px;
+        }
+
+        .footer-col h4 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            color: var(--dark);
+        }
+
+        .footer-col a {
+            display: block;
+            font-size: 13px;
+            color: var(--gray);
+            margin-bottom: 10px;
+        }
+
+        .footer-col a:hover { color: var(--blue); }
+
+        .copyright {
+            max-width: 1100px;
+            margin: 32px auto 0;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--gray);
+            text-align: center;
+        }
+
+        /* MOBILE */
+        @media (max-width: 768px) {
+            .nav-right a:not(.btn) { display: none; }
+            .hero h1 { font-size: 32px; }
+            .hero-stats { gap: 24px; flex-wrap: wrap; }
+            .cards { grid-template-columns: 1fr; }
+            .why-grid { grid-template-columns: 1fr; }
+            .steps { grid-template-columns: 1fr 1fr; }
+            .footer-inner { flex-direction: column; gap: 32px; }
+            .footer-links { gap: 32px; }
+            .hero-btns { flex-direction: column; align-items: center; }
+            .cta-btns { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-inner">
+            <a href="#" class="logo">Clinfly</a>
+            <div class="nav-right">
+                <a href="#services">Services</a>
+                <a href="#why">Why Us</a>
+                <a href="#how">How It Works</a>
+                <a href="#app">App</a>
+                <a href="#contact" class="btn btn-blue">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-tag">Healthcare in Turkey, Made Simple</div>
+            <h1>Quality Care.<br>Affordable Prices.</h1>
+            <p>We connect you with Turkey's top clinics for hair transplants and aesthetic procedures. All-inclusive packages, no hidden costs.</p>
+            <div class="hero-btns">
+                <a href="https://wa.me/18624231244?text=Hi!%20I'm%20interested%20in%20Clinfly." class="btn btn-green">Chat on WhatsApp</a>
+                <a href="#services" class="btn btn-outline">Learn More</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <div class="stat-num">500+</div>
+                    <div class="stat-label">Patients</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num">50+</div>
+                    <div class="stat-label">Clinics</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num">98%</div>
+                    <div class="stat-label">Satisfaction</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num">70%</div>
+                    <div class="stat-label">Savings</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="services-section" id="services">
+        <div class="container">
+            <div class="section-title">
+                <h2>Our Services</h2>
+                <p>Premium procedures by expert surgeons</p>
+            </div>
+            <div class="cards">
+                <div class="card">
+                    <div class="card-icon">&#128135;</div>
+                    <h3>Hair Transplant</h3>
+                    <p>FUE, DHI, and Sapphire techniques. Natural-looking results by top surgeons.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">&#10024;</div>
+                    <h3>Face Aesthetics</h3>
+                    <p>Rhinoplasty, facelift, and facial contouring by experienced specialists.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">&#128170;</div>
+                    <h3>Body Contouring</h3>
+                    <p>Liposuction, tummy tuck, and body sculpting at modern facilities.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="why">
+        <div class="container">
+            <div class="section-title">
+                <h2>Why Clinfly</h2>
+                <p>We handle everything so you don't have to</p>
+            </div>
+            <div class="why-grid">
+                <div class="why-item">
+                    <div class="why-icon">&#9989;</div>
+                    <div>
+                        <h3>Verified Clinics</h3>
+                        <p>Every clinic is vetted and meets international quality standards.</p>
+                    </div>
+                </div>
+                <div class="why-item">
+                    <div class="why-icon">&#127968;</div>
+                    <div>
+                        <h3>All-Inclusive</h3>
+                        <p>Transfers, hotel, surgery, medications, and aftercare included.</p>
+                    </div>
+                </div>
+                <div class="why-item">
+                    <div class="why-icon">&#128172;</div>
+                    <div>
+                        <h3>Personal Coordinator</h3>
+                        <p>24/7 support from first inquiry to full recovery.</p>
+                    </div>
+                </div>
+                <div class="why-item">
+                    <div class="why-icon">&#128176;</div>
+                    <div>
+                        <h3>Save Up to 70%</h3>
+                        <p>Same quality as US/UK at a fraction of the price.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="services-section" id="how">
+        <div class="container">
+            <div class="section-title">
+                <h2>How It Works</h2>
+                <p>4 simple steps to your transformation</p>
+            </div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <h3>Consultation</h3>
+                    <p>Share your goals. Get a free plan within 24 hours.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <h3>Choose</h3>
+                    <p>Compare clinics and pick the best fit for you.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <h3>Travel</h3>
+                    <p>We arrange transfers, hotel, and appointments.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <h3>Transform</h3>
+                    <p>Get your procedure and enjoy aftercare support.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- APP DOWNLOAD -->
+    <section id="app" style="padding: 80px 24px;">
+        <div class="container" style="display:flex; align-items:center; justify-content:center; gap:40px; flex-wrap:wrap;">
+            <div style="width:160px; height:160px; background:var(--blue); border-radius:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <span style="font-size:64px; color:#fff; font-weight:700;">C</span>
+            </div>
+            <div style="max-width:360px;">
+                <h2 style="font-size:26px; font-weight:700; margin-bottom:8px;">Get the Clinfly App</h2>
+                <p style="font-size:14px; color:var(--gray); line-height:1.6; margin-bottom:20px;">Browse clinics, chat with your coordinator, and track your journey.</p>
+                <a href="#" style="display:inline-flex; align-items:center; gap:10px; background:#000; color:#fff; padding:12px 24px; border-radius:10px;">
+                    <svg width="20" height="24" viewBox="0 0 20 24" fill="white"><path d="M16.52 12.46c-.03-2.87 2.34-4.24 2.44-4.31-1.33-1.94-3.4-2.21-4.14-2.24-1.76-.18-3.43 1.04-4.33 1.04-.89 0-2.27-1.01-3.73-.99-1.92.03-3.69 1.12-4.68 2.84-2 3.46-.51 8.59 1.43 11.4.95 1.38 2.09 2.92 3.58 2.87 1.43-.06 1.98-.93 3.71-.93 1.74 0 2.23.93 3.75.9 1.55-.03 2.53-1.4 3.47-2.78 1.1-1.6 1.55-3.14 1.57-3.23-.03-.01-3.02-1.16-3.05-4.6zM13.72 3.94c.79-.96 1.32-2.29 1.18-3.62-1.14.05-2.52.76-3.33 1.71-.73.85-1.37 2.2-1.2 3.5 1.27.1 2.57-.65 3.35-1.59z"/></svg>
+                    <div><div style="font-size:10px; opacity:0.8;">Download on the</div><div style="font-size:16px; font-weight:600; margin-top:-2px;">App Store</div></div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <div id="contact" style="padding: 0 24px;">
+        <div class="cta">
+            <h2>Ready to get started?</h2>
+            <p>Free consultation. No commitment.</p>
+            <div class="cta-btns">
+                <a href="https://wa.me/18624231244?text=Hi!%20I'd%20like%20a%20free%20consultation." class="btn btn-green">Chat on WhatsApp</a>
+                <a href="mailto:info@clinfly.com" class="btn btn-white">Email Us</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-left">
+                <a href="#" class="logo">Clinfly</a>
+                <p>Connecting you with Turkey's top clinics. Quality care, affordable prices.</p>
+            </div>
+            <div class="footer-links">
+                <div class="footer-col">
+                    <h4>Services</h4>
+                    <a href="#services">Hair Transplant</a>
+                    <a href="#services">Face Aesthetics</a>
+                    <a href="#services">Body Contouring</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <a href="mailto:info@clinfly.com">info@clinfly.com</a>
+                    <a href="https://wa.me/18624231244">WhatsApp</a>
+                    <a href="https://instagram.com/clinfly">Instagram</a>
+                    <a href="https://youtube.com/@clinfly">YouTube</a>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">&copy; 2025 Clinfly. All rights reserved.</div>
+    </footer>
+
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                const t = document.querySelector(a.getAttribute('href'));
+                if (t) t.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    </script>
+
+</body>
+</html>
