@@ -18,13 +18,17 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Clinfly - Premium Healthcare in Turkey">
     <meta name="twitter:description" content="Save up to 70% on medical procedures with Turkey's top clinics.">
+    <meta name="twitter:image" content="https://clinfly.com/og-image.png">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://clinfly.com">
 
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%2314B8A6'/><text x='50' y='68' font-size='55' font-weight='bold' fill='white' text-anchor='middle' font-family='system-ui'>C</text></svg>">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -96,10 +100,10 @@
             position: fixed;
             top: 0;
             width: 100%;
-            background: rgba(255,255,255,0.95);
+            background: rgba(15,23,42,0.97);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
             z-index: 1000;
         }
 
@@ -111,11 +115,19 @@
         }
 
         .logo {
-            font-size: 24px;
-            font-weight: 800;
-            color: var(--teal);
-            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 2px;
         }
+        .logo .logo-text {
+            font-family: 'DM Sans', system-ui;
+            font-size: 26px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -1px;
+        }
+        .logo .logo-text .teal { color: #5EEAD4; }
+        .logo .logo-swoosh { position: relative; top: -2px; }
 
         .nav-links {
             display: flex;
@@ -127,11 +139,11 @@
         .nav-links a {
             font-size: 14px;
             font-weight: 500;
-            color: var(--gray);
+            color: #94A3B8;
             transition: color 0.2s;
         }
 
-        .nav-links a:hover { color: var(--teal); }
+        .nav-links a:hover { color: #5EEAD4; }
 
 
 
@@ -456,7 +468,7 @@
 
         /* ========== FOOTER ========== */
         footer {
-            border-top: 1px solid var(--border);
+            background: var(--dark);
             padding: 56px 0 32px;
         }
 
@@ -467,8 +479,8 @@
             gap: 40px;
         }
 
-        .footer-brand .logo { display: block; margin-bottom: 12px; }
-        .footer-brand p { font-size: 13px; color: var(--gray); max-width: 280px; line-height: 1.7; }
+        .footer-brand .logo { display: flex; margin-bottom: 12px; }
+        .footer-brand p { font-size: 13px; color: #94A3B8; max-width: 280px; line-height: 1.7; }
 
         .footer-links {
             display: flex;
@@ -481,26 +493,26 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 16px;
-            color: var(--dark);
+            color: white;
         }
 
         .footer-col a {
             display: block;
             font-size: 13px;
-            color: var(--gray);
+            color: #94A3B8;
             margin-bottom: 10px;
             transition: color 0.2s;
         }
 
-        .footer-col a:hover { color: var(--teal); }
+        .footer-col a:hover { color: #5EEAD4; }
 
         .footer-bottom {
             margin-top: 40px;
             padding-top: 24px;
-            border-top: 1px solid var(--border);
+            border-top: 1px solid rgba(255,255,255,0.1);
             text-align: center;
             font-size: 12px;
-            color: var(--gray);
+            color: #64748B;
         }
 
         /* ========== ANIMATIONS ========== */
@@ -560,7 +572,14 @@
     <header>
         <div class="container">
             <nav class="nav">
-                <a href="#" class="logo">Clinfly</a>
+                <a href="/" class="logo">
+                    <span class="logo-text">Clin<span class="teal">fl</span></span>
+                    <svg class="logo-swoosh" width="24" height="28" viewBox="0 0 32 36">
+                        <path d="M2 28 Q4 14 14 10 Q20 8 28 4" stroke="#5EEAD4" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                        <path d="M22 2 L28 4 L24 9" fill="#5EEAD4"/>
+                        <text x="2" y="34" font-family="'DM Sans'" font-size="34" font-weight="800" fill="#5EEAD4" letter-spacing="-1">y</text>
+                    </svg>
+                </a>
                 <ul class="nav-links">
                     <li><a href="#services">Services</a></li>
                     <li><a href="#pricing">Pricing</a></li>
@@ -582,9 +601,9 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                     Chat on WhatsApp
                 </a>
-                <a href="#" class="btn btn-dark">
+                <a href="https://wa.me/18624231244?text=Hi!%20I'd%20like%20to%20know%20when%20the%20app%20launches." class="btn btn-dark">
                     <svg width="16" height="20" viewBox="0 0 20 24" fill="white"><path d="M16.52 12.46c-.03-2.87 2.34-4.24 2.44-4.31-1.33-1.94-3.4-2.21-4.14-2.24-1.76-.18-3.43 1.04-4.33 1.04-.89 0-2.27-1.01-3.73-.99-1.92.03-3.69 1.12-4.68 2.84-2 3.46-.51 8.59 1.43 11.4.95 1.38 2.09 2.92 3.58 2.87 1.43-.06 1.98-.93 3.71-.93 1.74 0 2.23.93 3.75.9 1.55-.03 2.53-1.4 3.47-2.78 1.1-1.6 1.55-3.14 1.57-3.23-.03-.01-3.02-1.16-3.05-4.6zM13.72 3.94c.79-.96 1.32-2.29 1.18-3.62-1.14.05-2.52.76-3.33 1.71-.73.85-1.37 2.2-1.2 3.5 1.27.1 2.57-.65 3.35-1.59z"/></svg>
-                    Download App
+                    Get the App
                 </a>
             </div>
         </div>
@@ -749,7 +768,14 @@
         <div class="container">
             <div class="footer-inner">
                 <div class="footer-brand">
-                    <a href="#" class="logo">Clinfly</a>
+                    <a href="/" class="logo">
+                        <span class="logo-text">Clin<span class="teal">fl</span></span>
+                        <svg class="logo-swoosh" width="24" height="28" viewBox="0 0 32 36">
+                            <path d="M2 28 Q4 14 14 10 Q20 8 28 4" stroke="#5EEAD4" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                            <path d="M22 2 L28 4 L24 9" fill="#5EEAD4"/>
+                            <text x="2" y="34" font-family="'DM Sans'" font-size="34" font-weight="800" fill="#5EEAD4" letter-spacing="-1">y</text>
+                        </svg>
+                    </a>
                     <p>Connecting you with Turkey's top clinics. Premium healthcare, affordable prices.</p>
                 </div>
                 <div class="footer-links">
@@ -762,8 +788,8 @@
                         <h4>Company</h4>
                         <a href="#why">About Us</a>
                         <a href="#how">How It Works</a>
-                        <a href="#">Privacy Policy</a>
-                        <a href="#">Terms of Service</a>
+                        <a href="/privacy.html">Privacy Policy</a>
+                        <a href="/terms.html">Terms of Service</a>
                     </div>
                     <div class="footer-col">
                         <h4>Contact</h4>
@@ -800,7 +826,7 @@
         const header = document.querySelector('header');
         window.addEventListener('scroll', () => {
             if (window.scrollY > 10) {
-                header.style.boxShadow = '0 2px 16px rgba(0,0,0,0.06)';
+                header.style.boxShadow = '0 2px 16px rgba(0,0,0,0.3)';
             } else {
                 header.style.boxShadow = 'none';
             }
