@@ -1,0 +1,22 @@
+{
+    "applinks": {
+        "apps": [],
+        "details": [
+            {
+                "appID": "84XN3Z8V36.com.clinfly.app",
+                "paths": [
+                    "/treatment/*",
+                    "/hospital/*",
+                    "/doctor/*",
+                    "/quote/*",
+                    "/appointment/*"
+                ]
+            }
+        ]
+    },
+    "webcredentials": {
+        "apps": [
+            "84XN3Z8V36.com.clinfly.app"
+        ]
+    }
+}
