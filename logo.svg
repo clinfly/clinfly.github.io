@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" fill="none">
+  <!-- Clinfly Logo - Icon + Wordmark -->
+
+  <!-- Icon: Stylized airplane/medical cross combo -->
+  <g transform="translate(0, 4)">
+    <!-- Rounded square background -->
+    <rect width="40" height="40" rx="10" fill="#14B8A6"/>
+
+    <!-- Medical cross + flight path -->
+    <!-- Vertical bar of cross -->
+    <rect x="16" y="8" width="8" height="24" rx="2" fill="white"/>
+    <!-- Horizontal bar of cross -->
+    <rect x="8" y="16" width="24" height="8" rx="2" fill="white"/>
+
+    <!-- Small airplane silhouette departing from top-right -->
+    <path d="M30 10 L36 7 L34 11 L30 10Z" fill="white" opacity="0.9"/>
+    <!-- Flight trail -->
+    <path d="M28 12 Q32 8 36 7" stroke="white" stroke-width="1.5" fill="none" opacity="0.6" stroke-linecap="round"/>
+  </g>
+
+  <!-- Wordmark: "Clinfly" -->
+  <text x="52" y="33" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="28" font-weight="800" letter-spacing="-0.5" fill="#0F172A">
+    Clin<tspan fill="#14B8A6">fly</tspan>
+  </text>
+</svg>

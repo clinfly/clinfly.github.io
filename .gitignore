@@ -1,0 +1,20 @@
+# Logo/icon development files
+logo-options.html
+logo-options2.html
+logo-options3.html
+logo-final.html
+logo-final2.html
+logo-final3.html
+logo-v4.html
+logo-v5.html
+logo-v6.html
+logo-preview.html
+icon-options.html
+icon-options2.html
+icon-final.html
+generate-icon.html
+og-image-template.html
+
+# OS files
+.DS_Store
+Thumbs.db
