@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clinfly - Premium Healthcare in Turkey | Save Up to 70%</title>
-    <meta name="description" content="Clinfly connects you with Turkey's top clinics for hair transplants and face aesthetics. All-inclusive packages, save up to 70%.">
-    <meta name="keywords" content="medical tourism turkey, hair transplant turkey, rhinoplasty turkey, face aesthetics turkey, clinfly">
+    <meta name="description" content="Clinfly connects you with Turkey's top clinics for hair transplants, rhinoplasty, dental aesthetics, face aesthetics and body contouring. All-inclusive packages, save up to 70%.">
+    <meta name="keywords" content="medical tourism turkey, hair transplant turkey, rhinoplasty turkey, dental aesthetics turkey, face aesthetics turkey, body contouring turkey, hollywood smile turkey, clinfly">
 
     <!-- Open Graph -->
     <meta property="og:title" content="Clinfly - Premium Healthcare in Turkey">
-    <meta property="og:description" content="Save up to 70% on hair transplants and face aesthetics. All-inclusive packages with top Turkish clinics.">
+    <meta property="og:description" content="Save up to 70% on hair transplants, rhinoplasty, dental and face aesthetics. All-inclusive packages with top Turkish clinics.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://clinfly.com">
     <meta property="og:image" content="https://clinfly.com/og-image.png">
@@ -33,12 +33,12 @@
         "@context": "https://schema.org",
         "@type": "MedicalBusiness",
         "name": "Clinfly",
-        "description": "Clinfly connects you with Turkey's top clinics for hair transplants and face aesthetics. All-inclusive packages, save up to 70%.",
+        "description": "Clinfly connects you with Turkey's top clinics for hair transplants, rhinoplasty, dental aesthetics, face aesthetics and body contouring. All-inclusive packages, save up to 70%.",
         "url": "https://clinfly.com",
         "logo": "https://clinfly.com/logo-icon.svg",
         "image": "https://clinfly.com/og-image.png",
         "telephone": "+18624231244",
-        "email": "info@clinfly.com",
+        "email": "admin@clinfly.com",
         "address": {
             "@type": "PostalAddress",
             "addressCountry": "TR",
@@ -53,7 +53,7 @@
             "https://instagram.com/clinfly",
             "https://youtube.com/@clinfly"
         ],
-        "priceRange": "$1,800 - $5,000",
+        "priceRange": "$2,000 - $10,000",
         "openingHoursSpecification": {
             "@type": "OpeningHoursSpecification",
             "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
@@ -63,7 +63,7 @@
         "aggregateRating": {
             "@type": "AggregateRating",
             "ratingValue": "4.9",
-            "reviewCount": "4250"
+            "reviewCount": "3500"
         }
     }
     </script>
@@ -290,9 +290,9 @@
 
         .services-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
-            max-width: 700px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
@@ -476,6 +476,83 @@
 
 
 
+        /* ========== COMING SOON ========== */
+        .coming-soon-section {
+            padding: 80px 24px;
+            background: var(--gray-light);
+        }
+        .coming-soon-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .coming-soon-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(20, 184, 166, 0.1);
+            border: 1px solid rgba(20, 184, 166, 0.25);
+            padding: 6px 18px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--teal);
+            margin-bottom: 24px;
+        }
+        .coming-soon-inner h2 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 16px;
+        }
+        .coming-soon-inner > p {
+            font-size: 16px;
+            color: var(--gray);
+            max-width: 560px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+        .coming-soon-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+        .cs-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px 20px;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .cs-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        }
+        .cs-icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+        }
+        .cs-card h4 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 6px;
+        }
+        .cs-card p {
+            font-size: 13px;
+            color: var(--gray);
+            line-height: 1.5;
+        }
+        @media (max-width: 768px) {
+            .coming-soon-grid { grid-template-columns: 1fr; }
+            .coming-soon-inner h2 { font-size: 26px; }
+        }
+
         /* ========== CTA ========== */
         .cta-section {
             padding: 0 24px;
@@ -560,6 +637,155 @@
             color: #64748B;
         }
 
+        /* ========== FEATURED CLINIC ========== */
+        .clinic-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .clinic-highlights {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            padding: 32px;
+        }
+
+        .clinic-feature {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+        }
+
+        .clinic-feature span {
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+
+        .clinic-feature h4 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .clinic-feature p {
+            font-size: 13px;
+            color: var(--gray);
+            line-height: 1.5;
+        }
+
+        .clinic-packages {
+            background: var(--gray-light);
+            padding: 32px;
+            border-top: 1px solid var(--border);
+        }
+
+        .clinic-packages h3 {
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .package-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .package-card:hover {
+            border-color: var(--teal);
+            box-shadow: 0 4px 20px var(--teal-glow);
+        }
+
+        .package-name {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .package-price {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--teal);
+            margin-bottom: 16px;
+        }
+
+        .package-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .package-card ul li {
+            font-size: 13px;
+            color: var(--gray);
+            padding: 5px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .package-card ul li:last-child {
+            border-bottom: none;
+        }
+
+        .package-card ul li::before {
+            content: "✓ ";
+            color: var(--teal);
+            font-weight: 700;
+        }
+
+        /* ========== TESTIMONIALS ========== */
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .testimonial-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            transition: all 0.3s ease;
+        }
+
+        .testimonial-card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        }
+
+        .testimonial-stars {
+            color: #F59E0B;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .testimonial-card > p {
+            font-size: 14px;
+            color: var(--dark);
+            line-height: 1.7;
+            margin-bottom: 16px;
+            font-style: italic;
+        }
+
+        .testimonial-author strong {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .testimonial-author span {
+            font-size: 13px;
+            color: var(--gray);
+        }
+
         /* ========== ANIMATIONS ========== */
         .fade-in {
             opacity: 0;
@@ -630,8 +856,11 @@
             .stat-num { font-size: 26px; }
             section { padding: 70px 0; }
             .section-header h2 { font-size: 28px; }
-            .services-grid { grid-template-columns: 1fr; max-width: 100%; }
+            .services-grid { grid-template-columns: 1fr 1fr; max-width: 100%; }
             .why-grid { grid-template-columns: 1fr; }
+            .clinic-highlights { grid-template-columns: repeat(2, 1fr); padding: 20px; }
+            .packages-grid { grid-template-columns: 1fr; }
+            .testimonials-grid { grid-template-columns: 1fr; }
             .steps { grid-template-columns: 1fr 1fr; gap: 32px; }
             .footer-inner { flex-direction: column; }
             .footer-links { gap: 32px; }
@@ -651,6 +880,8 @@
             .cta-btns { flex-direction: column; align-items: center; }
             .cta-btns .btn { width: 100%; justify-content: center; max-width: 280px; }
             .steps { grid-template-columns: 1fr; }
+            .services-grid { grid-template-columns: 1fr; }
+            .clinic-highlights { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -666,6 +897,7 @@
                 <ul class="nav-links" id="navLinks">
                     <li><a href="#services">Services</a></li>
                     <li><a href="#pricing">Pricing</a></li>
+                    <li><a href="#clinic">Our Clinic</a></li>
                     <li><a href="#why">Why Us</a></li>
                     <li><a href="#how">How It Works</a></li>
                 </ul>
@@ -683,7 +915,7 @@
         <div class="container">
             <div class="hero-badge">Healthcare in Turkey, Made Simple</div>
             <h1>Premium Care.<br><span class="accent">Affordable Prices.</span></h1>
-            <p>We connect you with Turkey's top clinics for hair transplants and face aesthetics. All-inclusive packages, no hidden costs.</p>
+            <p>We connect you with Turkey's top clinics for hair transplants, rhinoplasty, dental and face aesthetics. All-inclusive packages, no hidden costs.</p>
             <div class="hero-btns">
                 <a href="https://wa.me/18624231244?text=Hi!%20I'm%20interested%20in%20a%20free%20consultation." class="btn btn-teal">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -693,6 +925,12 @@
                     <svg width="16" height="20" viewBox="0 0 20 24" fill="white"><path d="M16.52 12.46c-.03-2.87 2.34-4.24 2.44-4.31-1.33-1.94-3.4-2.21-4.14-2.24-1.76-.18-3.43 1.04-4.33 1.04-.89 0-2.27-1.01-3.73-.99-1.92.03-3.69 1.12-4.68 2.84-2 3.46-.51 8.59 1.43 11.4.95 1.38 2.09 2.92 3.58 2.87 1.43-.06 1.98-.93 3.71-.93 1.74 0 2.23.93 3.75.9 1.55-.03 2.53-1.4 3.47-2.78 1.1-1.6 1.55-3.14 1.57-3.23-.03-.01-3.02-1.16-3.05-4.6zM13.72 3.94c.79-.96 1.32-2.29 1.18-3.62-1.14.05-2.52.76-3.33 1.71-.73.85-1.37 2.2-1.2 3.5 1.27.1 2.57-.65 3.35-1.59z"/></svg>
                     Download on App Store
                 </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat"><div class="stat-num">3,500+</div><div class="stat-label">Patient Reviews</div></div>
+                <div class="stat"><div class="stat-num">4.9</div><div class="stat-label">Average Rating</div></div>
+                <div class="stat"><div class="stat-num">28+</div><div class="stat-label">Years Experience</div></div>
+                <div class="stat"><div class="stat-num">500+</div><div class="stat-label">Healthcare Pros</div></div>
             </div>
         </div>
     </section>
@@ -709,14 +947,32 @@
                 <div class="service-card fade-in">
                     <span class="service-icon" role="img" aria-label="Hair transplant">💆‍♂️</span>
                     <h3>Hair Transplant</h3>
-                    <p>FUE, DHI, and Sapphire techniques. Natural results by world-class surgeons.</p>
-                    <span class="service-price">From $1,800</span>
+                    <p>Sapphire FUE, DHI, and Long DHI techniques with 3D diagnostic technology. 28 years of pioneering experience.</p>
+                    <span class="service-price">From $3,000</span>
                 </div>
                 <div class="service-card fade-in">
-                    <span class="service-icon" role="img" aria-label="Face aesthetics">&#10024;</span>
-                    <h3>Face Aesthetics</h3>
-                    <p>Rhinoplasty, facelift, and contouring by experienced specialists.</p>
+                    <span class="service-icon" role="img" aria-label="Rhinoplasty">👃</span>
+                    <h3>Rhinoplasty</h3>
+                    <p>Traditional, ethnic, septorhinoplasty, and revision rhinoplasty. Natural-looking results by board-certified surgeons.</p>
+                    <span class="service-price">From $3,500</span>
+                </div>
+                <div class="service-card fade-in">
+                    <span class="service-icon" role="img" aria-label="Dental aesthetics">😁</span>
+                    <h3>Dental Aesthetics</h3>
+                    <p>Hollywood Smile, porcelain veneers, dental implants, zirconium crowns with digital smile design.</p>
                     <span class="service-price">From $2,500</span>
+                </div>
+                <div class="service-card fade-in">
+                    <span class="service-icon" role="img" aria-label="Face aesthetics">✨</span>
+                    <h3>Face Aesthetics</h3>
+                    <p>Face & neck lift, eyelid surgery, fillers, botox, thread facelift, HIFU, and Ultherapy.</p>
+                    <span class="service-price">From $2,000</span>
+                </div>
+                <div class="service-card fade-in">
+                    <span class="service-icon" role="img" aria-label="Body contouring">🏋️</span>
+                    <h3>Body Contouring</h3>
+                    <p>Liposuction, tummy tuck, BBL, breast aesthetics, CoolSculpting and Emsculpt NEO.</p>
+                    <span class="service-price">From $3,000</span>
                 </div>
             </div>
         </div>
@@ -742,16 +998,34 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>Hair Transplant</strong> (FUE)</td>
-                            <td><span class="price-usa">$10,000 - $15,000</span></td>
-                            <td><span class="price-turkey">$1,800 - $3,500</span></td>
+                            <td><strong>Hair Transplant</strong> (DHI)</td>
+                            <td><span class="price-usa">$10,000 - $20,000</span></td>
+                            <td><span class="price-turkey">$3,000 - $5,000</span></td>
                             <td style="text-align:center"><span class="savings-badge">Up to 75%</span></td>
                         </tr>
                         <tr>
                             <td><strong>Rhinoplasty</strong></td>
                             <td><span class="price-usa">$8,000 - $15,000</span></td>
-                            <td><span class="price-turkey">$2,500 - $4,500</span></td>
-                            <td style="text-align:center"><span class="savings-badge">Up to 70%</span></td>
+                            <td><span class="price-turkey">$3,500 - $6,000</span></td>
+                            <td style="text-align:center"><span class="savings-badge">Up to 60%</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Hollywood Smile</strong> (20 Veneers)</td>
+                            <td><span class="price-usa">$8,000 - $25,000</span></td>
+                            <td><span class="price-turkey">$2,500 - $5,000</span></td>
+                            <td style="text-align:center"><span class="savings-badge">Up to 80%</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Face Aesthetics</strong></td>
+                            <td><span class="price-usa">$5,000 - $15,000</span></td>
+                            <td><span class="price-turkey">$2,000 - $8,000</span></td>
+                            <td style="text-align:center"><span class="savings-badge">Up to 60%</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Body Contouring</strong></td>
+                            <td><span class="price-usa">$6,000 - $20,000</span></td>
+                            <td><span class="price-turkey">$3,000 - $10,000</span></td>
+                            <td style="text-align:center"><span class="savings-badge">Up to 50%</span></td>
                         </tr>
                     </tbody>
                 </table>
@@ -836,6 +1110,187 @@
 
 
 
+    <!-- ========== FEATURED CLINIC ========== -->
+    <section id="clinic">
+        <div class="container">
+            <div class="section-header fade-in">
+                <div class="tag">Featured Partner</div>
+                <h2>Doku Clinic, Istanbul</h2>
+                <p>World-class medical center by Dr. Serkan Aygin</p>
+            </div>
+            <div class="clinic-card fade-in">
+                <div class="clinic-highlights">
+                    <div class="clinic-feature">
+                        <span>🏥</span>
+                        <div>
+                            <h4>5,000 m² Facility</h4>
+                            <p>State-of-the-art medical center in Sisli, Istanbul</p>
+                        </div>
+                    </div>
+                    <div class="clinic-feature">
+                        <span>👨‍⚕️</span>
+                        <div>
+                            <h4>20+ Specialist Doctors</h4>
+                            <p>Board-certified surgeons with decades of experience</p>
+                        </div>
+                    </div>
+                    <div class="clinic-feature">
+                        <span>🏆</span>
+                        <div>
+                            <h4>iF Design Award 2023</h4>
+                            <p>Award-winning clinic blending healthcare with art & culture</p>
+                        </div>
+                    </div>
+                    <div class="clinic-feature">
+                        <span>🔬</span>
+                        <div>
+                            <h4>3D Diagnostic System</h4>
+                            <p>Doku Studio Arc proprietary diagnostic technology</p>
+                        </div>
+                    </div>
+                    <div class="clinic-feature">
+                        <span>🌍</span>
+                        <div>
+                            <h4>6 Languages</h4>
+                            <p>English, Turkish, German, Arabic, Russian, French</p>
+                        </div>
+                    </div>
+                    <div class="clinic-feature">
+                        <span>📋</span>
+                        <div>
+                            <h4>ISO Certified</h4>
+                            <p>ISO 9001, ISO 14001, ISO 45001, ISO 10002</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="clinic-packages">
+                    <h3>Popular All-Inclusive Packages</h3>
+                    <div class="packages-grid">
+                        <div class="package-card">
+                            <div class="package-name">DHI Hair Transplant</div>
+                            <div class="package-price">$4,300</div>
+                            <ul>
+                                <li>One Session DHI Procedure</li>
+                                <li>Hotel Stay (2 Nights)</li>
+                                <li>Airport & Clinic Transfers</li>
+                                <li>Blood Test & Medications</li>
+                                <li>12 Month Follow-up</li>
+                            </ul>
+                        </div>
+                        <div class="package-card">
+                            <div class="package-name">Rhinoplasty Package</div>
+                            <div class="package-price">$5,500</div>
+                            <ul>
+                                <li>Surgery by Dr. Engin Ocal</li>
+                                <li>Hospital Stay (1 Night)</li>
+                                <li>Hotel Stay (6 Nights)</li>
+                                <li>Airport & Clinic Transfers</li>
+                                <li>Post-op Follow-ups</li>
+                            </ul>
+                        </div>
+                        <div class="package-card">
+                            <div class="package-name">Hollywood Smile</div>
+                            <div class="package-price">$3,500</div>
+                            <ul>
+                                <li>20 Porcelain Veneers</li>
+                                <li>Digital Smile Design</li>
+                                <li>Hotel Stay (5 Nights)</li>
+                                <li>Airport & Clinic Transfers</li>
+                                <li>Panoramic X-Ray & 3D Scan</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== TESTIMONIALS ========== -->
+    <section class="testimonials" style="background: var(--gray-light);">
+        <div class="container">
+            <div class="section-header fade-in">
+                <div class="tag">Testimonials</div>
+                <h2>What Our Patients Say</h2>
+                <p>Real reviews from verified patients</p>
+            </div>
+            <div class="testimonials-grid fade-in">
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p>"Had my DHI at Doku Clinic and the results are incredible. The 3D diagnostic system they use for planning is next level. 10 months in and my hair is thicker than it's been in years."</p>
+                    <div class="testimonial-author">
+                        <strong>Michael R.</strong>
+                        <span>🇺🇸 USA — Hair Transplant</span>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p>"Flew from London for a hair transplant at Doku Clinic. The facility is stunning and the medical team was top notch. Saved about £8,000 compared to London prices."</p>
+                    <div class="testimonial-author">
+                        <strong>James P.</strong>
+                        <span>🇬🇧 UK — Hair Transplant</span>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p>"Dr. Engin Ocal is an artist. My rhinoplasty results look completely natural. The clinic took care of everything. Saved over $10,000 compared to NYC prices."</p>
+                    <div class="testimonial-author">
+                        <strong>Sarah M.</strong>
+                        <span>🇺🇸 USA — Rhinoplasty</span>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p>"Got my Hollywood Smile done at Doku Clinic. 20 porcelain veneers in just 5 days. The digital smile design let me preview my results. Absolutely worth the trip from Sydney!"</p>
+                    <div class="testimonial-author">
+                        <strong>Emma L.</strong>
+                        <span>🇦🇺 Australia — Dental Aesthetics</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== COMING SOON ========== -->
+    <section class="coming-soon-section">
+        <div class="coming-soon-inner fade-in">
+            <div class="coming-soon-badge">Coming Soon</div>
+            <h2>More Features on the Way</h2>
+            <p>We're building the ultimate medical tourism experience. Here's what's coming next.</p>
+            <div class="coming-soon-grid">
+                <div class="cs-card">
+                    <div class="cs-icon">🏥</div>
+                    <h4>Multi-Clinic Marketplace</h4>
+                    <p>Compare verified clinics, doctors, and packages side by side. Find the perfect match for your needs.</p>
+                </div>
+                <div class="cs-card">
+                    <div class="cs-icon">💬</div>
+                    <h4>In-App Messaging</h4>
+                    <p>Chat directly with clinics and coordinators. Share photos, documents, and voice messages securely.</p>
+                </div>
+                <div class="cs-card">
+                    <div class="cs-icon">📅</div>
+                    <h4>Smart Booking</h4>
+                    <p>Book appointments, track your treatment journey, and manage your entire trip from one app.</p>
+                </div>
+                <div class="cs-card">
+                    <div class="cs-icon">🔄</div>
+                    <h4>Before & After Gallery</h4>
+                    <p>Browse real patient results with verified before and after photos from top clinics.</p>
+                </div>
+                <div class="cs-card">
+                    <div class="cs-icon">⭐</div>
+                    <h4>Verified Reviews</h4>
+                    <p>Read authentic reviews from real patients who completed their treatments in Turkey.</p>
+                </div>
+                <div class="cs-card">
+                    <div class="cs-icon">🌐</div>
+                    <h4>Multi-Language Support</h4>
+                    <p>Full support in English, Turkish, Arabic, German, and more languages coming soon.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ========== CTA ========== -->
     <div class="cta-section" id="contact">
         <div class="cta-box fade-in">
@@ -846,7 +1301,7 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                     Chat on WhatsApp
                 </a>
-                <a href="mailto:info@clinfly.com" class="btn btn-white">Email Us</a>
+                <a href="mailto:admin@clinfly.com" class="btn btn-white">Email Us</a>
             </div>
         </div>
     </div>
@@ -865,7 +1320,10 @@
                     <div class="footer-col">
                         <h4>Services</h4>
                         <a href="#services">Hair Transplant</a>
+                        <a href="#services">Rhinoplasty</a>
+                        <a href="#services">Dental Aesthetics</a>
                         <a href="#services">Face Aesthetics</a>
+                        <a href="#services">Body Contouring</a>
                     </div>
                     <div class="footer-col">
                         <h4>Company</h4>
@@ -877,7 +1335,7 @@
                     </div>
                     <div class="footer-col">
                         <h4>Contact</h4>
-                        <a href="mailto:info@clinfly.com">info@clinfly.com</a>
+                        <a href="mailto:admin@clinfly.com">admin@clinfly.com</a>
                         <a href="https://wa.me/18624231244">WhatsApp</a>
                         <a href="https://instagram.com/clinfly" target="_blank" rel="noopener">Instagram</a>
                         <a href="https://youtube.com/@clinfly" target="_blank" rel="noopener">YouTube</a>
