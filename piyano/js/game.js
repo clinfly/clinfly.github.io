@@ -24,6 +24,21 @@ export class Game {
     this.wrong = 0;
     this.hits = []; // { expected (şarkı sn), actual (gerçek sn) }
     this.nextIdx = 0; // ilk bekleyen zorunlu notanın indeksi (required dizisinde)
+
+    // Adımlar: aynı anda çalınacak zorunlu notalar bir adım (tek nota veya akor)
+    this.steps = [];
+    for (const n of this.required) {
+      const last = this.steps[this.steps.length - 1];
+      if (last && n.time - last.time < GROUP_EPS) last.notes.push(n);
+      else this.steps.push({ time: n.time, notes: [n] });
+    }
+    this.steps.forEach((st, i) => st.notes.forEach((n) => { n.step = i; }));
+  }
+
+  // İlk tamamlanmamış adımın indeksi
+  currentStep() {
+    const next = this.advancePointer();
+    return next ? next.step : this.steps.length;
   }
 
   get progress() {

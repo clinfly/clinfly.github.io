@@ -156,7 +156,7 @@ export class Renderer {
     }
   }
 
-  drawNotes({ notes, songTime }, sx) {
+  drawNotes({ notes, songTime, order }, sx) {
     const { ctx } = this;
     const topTime = songTime + (this.hitY / this.pxPerSec);
     ctx.font = `600 ${Math.max(10, Math.min(14, this.whiteW * 0.28))}px system-ui, -apple-system, sans-serif`;
@@ -195,6 +195,20 @@ export class Renderer {
       if (hgt > 16 && w > 14) {
         ctx.fillStyle = n.required && n.state === 'pending' ? 'rgba(0,0,0,0.75)' : 'rgba(0,0,0,0.6)';
         ctx.fillText(pitchClass(n.midi), x + w / 2, clipBottom - 3);
+      }
+      // Sıra numarası: hangi tuşa kaçıncı basılacak
+      const num = order?.get(n.id);
+      if (num) {
+        const r = Math.max(8, Math.min(11, w * 0.32));
+        const cy = Math.max(r + 2, yTop - r - 3);
+        ctx.beginPath();
+        ctx.arc(x + w / 2, cy, r, 0, Math.PI * 2);
+        ctx.fillStyle = num === 1 ? '#ffd65a' : 'rgba(232,236,245,0.9)';
+        ctx.fill();
+        ctx.fillStyle = '#0d1017';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(num), x + w / 2, cy + 0.5);
+        ctx.textBaseline = 'bottom';
       }
     }
   }

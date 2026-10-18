@@ -11,8 +11,10 @@ import { midiToName, LOW_MIDI, HIGH_MIDI } from './notes.js';
 const $ = (sel) => document.querySelector(sel);
 
 // ---------- Ayarlar (cihazda saklanır) ----------
-const DEFAULTS = { sensitivity: 60, octaveTolerant: false, hands: 'R', speed: '0.75', wait: true };
+const DEFAULTS = { sensitivity: 70, octaveTolerant: false, hands: 'R', speed: '0.75', wait: true };
 const settings = { ...DEFAULTS, ...readJSON('piano.settings') };
+// v2: yeni algılayıcı için varsayılan hassasiyet 60 -> 70
+if (!settings.v2) { if (settings.sensitivity === 60) settings.sensitivity = 70; settings.v2 = true; }
 function saveSettings() {
   try { localStorage.setItem('piano.settings', JSON.stringify(settings)); } catch { /* yok say */ }
 }
@@ -179,6 +181,7 @@ function startGame(song) {
     octaveTolerant: settings.octaveTolerant,
   });
   go('play');
+  seqKey = '';
   $('#paused').classList.add('hidden');
   requestAnimationFrame(() => {
     renderer.resize();
@@ -217,13 +220,71 @@ function frame(t) {
     const upcoming = game.required.filter((n) => n.state === 'pending' && n.time < game.songTime + 1.5).slice(0, 4);
     renderer.ensureVisible((upcoming.length ? upcoming : expected).map((n) => n.midi));
   }
-  renderer.draw({ notes: game.notes, songTime: game.songTime, expectedHand, waiting: game.waiting });
+  const cur = game.currentStep();
+  renderSequence(cur);
+  // Sıradaki 6 adımın sıra numarası düşen çubukların üstünde görünsün
+  const order = new Map();
+  for (let i = cur; i < Math.min(game.steps.length, cur + 6); i++) {
+    for (const n of game.steps[i].notes) if (n.state === 'pending') order.set(n.id, i - cur + 1);
+  }
+  renderer.draw({ notes: game.notes, songTime: game.songTime, expectedHand, waiting: game.waiting, order });
 
   $('#progress-fill').style.width = (game.progress * 100).toFixed(1) + '%';
   $('#play-hint').textContent = game.waiting ? 'Bekliyor: ' + expected.map((n) => midiToName(n.midi)).join(' ') : '';
 
   if (game.finished) return showResults();
   raf = requestAnimationFrame(frame);
+}
+
+// ---------- Sıradaki notalar şeridi ----------
+// Ardışık aynı notalar tek kutuda "E4 ×3" olarak gösterilir; noktalar kaçının çalındığını gösterir.
+const seqEl = $('#sequence');
+let seqKey = '';
+function renderSequence(cur) {
+  const steps = game.steps;
+  const key = cur + '|' + game.waiting;
+  if (key === seqKey) return;
+  seqKey = key;
+  if (cur >= steps.length) { seqEl.innerHTML = ''; return; }
+  const label = (st) => st.notes.map((n) => midiToName(n.midi)).sort().join(' + ');
+  // Adımları ardışık tekrarlara göre grupla (mevcut adımın biraz gerisinden başla)
+  const runs = [];
+  let start = cur;
+  while (start > 0 && label(steps[start - 1]) === label(steps[cur])) start--;
+  for (let i = start; i < steps.length && runs.length < 14; i++) {
+    const l = label(steps[i]);
+    const last = runs[runs.length - 1];
+    if (last && last.label === l) last.steps.push(i);
+    else runs.push({ label: l, hand: steps[i].notes[0].hand, steps: [i] });
+  }
+  seqEl.innerHTML = '';
+  if (!runs.length) return;
+  runs.forEach((run, ri) => {
+    const el = document.createElement('div');
+    const isCur = run.steps.includes(cur);
+    el.className = 'seq-item ' + (run.hand === 'L' ? 'left' : 'right') + (isCur ? ' current' : '') + (isCur && game.waiting ? ' waiting' : '');
+    const name = document.createElement('span');
+    name.className = 'seq-name';
+    name.textContent = run.label;
+    el.appendChild(name);
+    if (run.steps.length > 1) {
+      const times = document.createElement('span');
+      times.className = 'seq-times';
+      times.textContent = '×' + run.steps.length;
+      el.appendChild(times);
+      const dots = document.createElement('span');
+      dots.className = 'seq-dots';
+      dots.textContent = run.steps.map((i) => (i < cur ? '●' : '○')).join('');
+      el.appendChild(dots);
+    }
+    seqEl.appendChild(el);
+    if (ri < runs.length - 1) {
+      const arrow = document.createElement('span');
+      arrow.className = 'seq-arrow';
+      arrow.textContent = '›';
+      seqEl.appendChild(arrow);
+    }
+  });
 }
 
 function showResults() {
