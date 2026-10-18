@@ -1,6 +1,7 @@
 // Uygulama: ekranlar, ayarlar ve oyun döngüsü
 import { InputManager } from './input/InputManager.js';
 import { MicInput } from './input/MicInput.js';
+import { SimpleMicInput } from './input/SimpleMicInput.js';
 import { MidiInput } from './input/MidiInput.js';
 import { TouchInput } from './input/TouchInput.js';
 import { LIBRARY, loadSong, importSongFile } from './song.js';
@@ -24,7 +25,29 @@ function readJSON(key) {
 
 // ---------- Giriş katmanı ----------
 const input = new InputManager();
-const mic = input.add('mic', new MicInput());
+// İki algılama yöntemi; ayarlardan seçilir. Dışarıya tek bir "mic" kaynağı gibi görünür.
+class SwitchableMic {
+  constructor() {
+    this.impls = { advanced: new MicInput(), simple: new SimpleMicInput() };
+    this.mode = 'advanced';
+    this.onEvent = () => {};
+    for (const impl of Object.values(this.impls)) impl.onEvent = (t, d) => this.onEvent(t, d);
+  }
+  get current() { return this.impls[this.mode]; }
+  get running() { return this.current.running; }
+  setSensitivity(v) { for (const impl of Object.values(this.impls)) impl.setSensitivity(v); }
+  start() { return this.current.start(); }
+  stop() { this.current.stop(); }
+  async setMode(mode) {
+    if (mode === this.mode || !this.impls[mode]) return;
+    const wasRunning = this.running;
+    if (wasRunning) this.current.stop();
+    this.mode = mode;
+    if (wasRunning) await this.current.start();
+  }
+}
+const mic = input.add('mic', new SwitchableMic());
+mic.mode = settings.detector === 'simple' ? 'simple' : 'advanced';
 const touch = input.add('touch', new TouchInput());
 const midiIn = input.add('midi', new MidiInput());
 mic.setSensitivity(settings.sensitivity);
@@ -435,12 +458,17 @@ $('#s-sens').oninput = onSens;
 function enterSettings() {
   syncSensitivity();
   $('#s-octave').checked = settings.octaveTolerant;
+  document.querySelectorAll('[data-opt="detector"] button').forEach((b) => b.classList.toggle('on', b.dataset.val === (settings.detector || 'advanced')));
   if (!MidiInput.supported) {
     $('#s-midi').disabled = true;
     $('#s-midi-status').textContent = 'Bu tarayıcı Web MIDI desteklemiyor (iPhone Safari desteklemez). Kod hazır; destekleyen tarayıcıda çalışır.';
   }
 }
 $('#s-octave').onchange = (e) => { settings.octaveTolerant = e.target.checked; saveSettings(); };
+document.querySelector('[data-opt="detector"]').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (b) mic.setMode(b.dataset.val).catch((err) => toast(err.message));
+});
 $('#s-midi').onclick = async () => {
   try {
     const names = await midiIn.start();

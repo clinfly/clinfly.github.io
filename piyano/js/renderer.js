@@ -162,6 +162,7 @@ export class Renderer {
     ctx.font = `600 ${Math.max(10, Math.min(14, this.whiteW * 0.28))}px system-ui, -apple-system, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
+    const badges = [];
     for (const n of notes) {
       if (n.time > topTime) break; // notalar zamana göre sıralı
       if (n.time + n.duration < songTime - 1) continue;
@@ -196,21 +197,30 @@ export class Renderer {
         ctx.fillStyle = n.required && n.state === 'pending' ? 'rgba(0,0,0,0.75)' : 'rgba(0,0,0,0.6)';
         ctx.fillText(pitchClass(n.midi), x + w / 2, clipBottom - 3);
       }
-      // Sıra numarası: hangi tuşa kaçıncı basılacak
-      const num = order?.get(n.id);
-      if (num) {
-        const r = Math.max(8, Math.min(11, w * 0.32));
-        const cy = Math.max(r + 2, yTop - r - 3);
-        ctx.beginPath();
-        ctx.arc(x + w / 2, cy, r, 0, Math.PI * 2);
-        ctx.fillStyle = num === 1 ? '#ffd65a' : 'rgba(232,236,245,0.9)';
-        ctx.fill();
-        ctx.fillStyle = '#0d1017';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(String(num), x + w / 2, cy + 0.5);
-        ctx.textBaseline = 'bottom';
-      }
+      if (order?.has(n.id)) badges.push([x + w / 2, yTop, w, order.get(n.id)]);
     }
+    this.drawBadges(badges);
+  }
+
+  // Sıra numaraları en üstte çizilir (üst üste gelen tekrar notalarda kaybolmasın)
+  drawBadges(badges) {
+    const { ctx } = this;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (const [cx, yTop, w, num] of badges) {
+      const r = Math.max(8, Math.min(11, w * 0.32));
+      const cy = Math.max(r + 2, yTop - r - 3);
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = num === 1 ? '#ffd65a' : 'rgba(232,236,245,0.92)';
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#0d1017';
+      ctx.stroke();
+      ctx.fillStyle = '#0d1017';
+      ctx.fillText(String(num), cx, cy + 0.5);
+    }
+    ctx.textBaseline = 'bottom';
   }
 
   drawHitLine(sx, waiting) {
@@ -232,8 +242,24 @@ export class Renderer {
     if (kind === 'correct') return COLORS.hit;
     if (kind === 'wrong') return COLORS.wrong;
     if (kind === 'neutral') return '#8fb8ff';
-    if (state.expectedHand?.has(midi)) return state.expectedHand.get(midi) === 'R' ? COLORS.right : COLORS.left;
     return null;
+  }
+
+  // Basılması beklenen tuş: dolu renk yerine el renginde çerçeve (basılan tuşla karışmasın)
+  expectedColor(midi, state) {
+    if (!state.expectedHand?.has(midi)) return null;
+    return state.expectedHand.get(midi) === 'R' ? COLORS.right : COLORS.left;
+  }
+
+  outline(x, y, w, h, color) {
+    const { ctx } = this;
+    ctx.save();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = color;
+    ctx.setLineDash([6, 4]);
+    roundRect(ctx, x + 2.5, y + 2.5, w - 5, h - 5, 4);
+    ctx.stroke();
+    ctx.restore();
   }
 
   drawKeyboard(state, now, sx) {
@@ -248,22 +274,16 @@ export class Renderer {
     for (const [m, k] of this.keys) {
       if (k.black || k.x + k.w < sx || k.x > sx + this.w) continue;
       const c = this.keyColor(m, now, state);
-      const expected = state.expectedHand?.has(m) && !this.held.get(m);
-      ctx.fillStyle = c && !expected ? c : COLORS.whiteKey;
+      const ex = c ? null : this.expectedColor(m, state);
+      ctx.fillStyle = c || COLORS.whiteKey;
       ctx.fillRect(k.x + 1, y, k.w - 2, H - 2);
-      if (expected) {
-        // Beklenen tuş: el renginde alt şerit
-        ctx.fillStyle = c;
-        ctx.globalAlpha = 0.85;
-        ctx.fillRect(k.x + 1, y + H * 0.66, k.w - 2, H * 0.34 - 2);
-        ctx.globalAlpha = 1;
-      }
+      if (ex) this.outline(k.x + 1, y, k.w - 2, H - 2, ex);
       ctx.fillStyle = COLORS.whiteKeyShade;
       ctx.fillRect(k.x + 1, y + H - 8, k.w - 2, 6);
 
       // Nota adı (C tuşlarında oktav numarası da)
       const pc = m % 12;
-      ctx.fillStyle = c && !expected ? '#0d1017' : COLORS.label;
+      ctx.fillStyle = c ? '#0d1017' : ex || COLORS.label;
       ctx.font = `${pc === 0 ? 700 : 600} ${Math.max(10, Math.min(15, k.w * 0.3))}px system-ui, -apple-system, sans-serif`;
       ctx.fillText(pc === 0 ? midiToName(m) : pitchClass(m), k.x + k.w / 2, y + H - 14);
     }
@@ -275,6 +295,8 @@ export class Renderer {
       ctx.fillStyle = c || COLORS.blackKey;
       roundRect(ctx, k.x, y, k.w, bH, 3);
       ctx.fill();
+      const ex = c ? null : this.expectedColor(m, state);
+      if (ex) this.outline(k.x, y, k.w, bH, ex);
       if (!c) {
         ctx.fillStyle = 'rgba(255,255,255,0.08)';
         ctx.fillRect(k.x + 3, y + bH - 8, k.w - 6, 4);

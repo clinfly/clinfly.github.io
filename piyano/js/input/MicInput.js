@@ -19,6 +19,8 @@ const HISTORY = 3;              // flux için karşılaştırılan önceki kare 
 const COLLECT_FRAMES = 4;       // vuruştan sonra kaç kare enerji toplanacak (~65 ms)
 const REFRACTORY_MS = 180;      // iki vuruş arası en kısa süre (FFT penceresi ~170 ms)
 const ONSET_RATIO = 0.12;       // yeni enerji / mevcut enerji oranı eşiği
+const STRONG_ONSET = 0.45;      // ses seviyesi artmasa da kesin vuruş sayılan oran
+const DOUBLE_MS = 350;          // bu süre içinde ikinci nota için güçlü vuruş gerekir
 const MIN_MIDI = LOW_MIDI - 3;
 const MAX_MIDI = HIGH_MIDI + 3;
 const WEIGHTS = [1, 0.85, 0.65, 0.5, 0.38, 0.28];
@@ -93,6 +95,8 @@ export class MicInput {
     this.frames = 0;
     this.lastYin = null;
     this.lastOnAt = -Infinity;
+    this.rmsHist = [];
+    this.onsetStrength = 0;
   }
 
   loop = () => {
@@ -141,11 +145,18 @@ export class MicInput {
 
     // --- Vuruş algılama ---
     const ratio = fluxSum / (prevSum + 1e-6);
+    const minRms = this.rmsHist.length ? Math.min(...this.rmsHist) : 0;
+    this.rmsHist.push(rms);
+    if (this.rmsHist.length > 6) this.rmsHist.shift();
     if (this.collecting > 0) {
       for (let k = loBin; k <= hiBin; k++) acc[k] += flux[k];
       if (--this.collecting === 0) this.decide(rms, now);
-    } else if (rms > this.gate && ratio > ONSET_RATIO && now - this.lastOnsetAt > REFRACTORY_MS) {
+    } else if (rms > this.gate && now - this.lastOnsetAt > REFRACTORY_MS &&
+               ((ratio > ONSET_RATIO && rms > minRms * 1.06) || ratio > STRONG_ONSET)) {
+      // Gerçek vuruşta hem spektrum hem toplam ses seviyesi birden artar. Sadece spektrum
+      // kıpırdıyorsa (tellerin "vuu-vuu" titreşimi, mikrofon kazancı) vuruş sayılmaz.
       this.lastOnsetAt = now;
+      this.onsetStrength = ratio;
       this.collecting = COLLECT_FRAMES;
       acc.set(flux);
     }
@@ -211,9 +222,18 @@ export class MicInput {
     const pick = octaves.find(([, o]) => o > 0.25 * maxOdd);
     if (pick) best = pick[0];
 
+    // Temiz tek nota varsa oktavı YIN'e sor (çınlayan eski notayı yok sayarak)
+    const y = this.yin(this.timeBuf);
+    if (y && y.clarity > 0.88) {
+      const ym = Math.round(freqToMidiFloat(y.freq));
+      if (ym !== this.active && Math.abs(ym - best) === 12) best = ym;
+    }
+
     if (best < LOW_MIDI - 12 || best > HIGH_MIDI + 12) return;
     // Aynı vuruşun devamı olabilecek çok yakın tekrarları yok say
     if (best === this.active && now - this.lastOnAt < 280) return;
+    // Bir tuşa basınca iki nota yanmasın: çok kısa sürede ikinci nota ancak güçlü vuruşla
+    if (now - this.lastOnAt < DOUBLE_MS && this.onsetStrength < 0.35) return;
     if (this.active !== null) this.onEvent('noteoff', { midi: this.active });
     this.active = best;
     this.lastOnAt = now;
