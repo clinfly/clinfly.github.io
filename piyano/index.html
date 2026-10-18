@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Piyano Öğren</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0d1017">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Piyano">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Ana ekran / kütüphane -->
+  <section id="home" class="screen active">
+    <header class="topbar">
+      <h1>🎹 Piyano Öğren</h1>
+      <div class="spacer"></div>
+      <button class="btn ghost" data-go="tuner">Akort testi</button>
+      <button class="btn ghost" data-go="settings">Ayarlar</button>
+    </header>
+    <main class="home-main">
+      <h2 class="section-title">Kütüphane</h2>
+      <div id="library" class="library"></div>
+    </main>
+  </section>
+
+  <!-- Şarkı ayarları -->
+  <section id="setup" class="screen">
+    <header class="topbar">
+      <button class="btn ghost icon" data-go="home" aria-label="Geri">‹</button>
+      <div class="titles">
+        <h1 id="setup-title"></h1>
+        <p id="setup-artist" class="muted"></p>
+      </div>
+    </header>
+    <main class="setup-main">
+      <div id="setup-missing" class="card warn hidden">
+        <p><strong>MIDI dosyası bulunamadı.</strong> Uygulama <code>songs/interstellar.mid</code> dosyasını arıyor.
+          Telefonundaki bir .mid dosyasını seçerek yükleyebilirsin; dosya bu cihazda saklanır.</p>
+        <label class="btn primary file-btn">MIDI dosyasını yükle
+          <input id="midi-file" type="file" accept=".mid,.midi,audio/midi,audio/x-midi">
+        </label>
+        <p id="midi-error" class="error hidden"></p>
+      </div>
+
+      <div id="setup-ready" class="hidden">
+        <div class="option-row">
+          <span class="label">El</span>
+          <div class="seg" data-opt="hands">
+            <button data-val="R">Sağ el</button>
+            <button data-val="L">Sol el</button>
+            <button data-val="both">İki el</button>
+          </div>
+        </div>
+        <div class="option-row">
+          <span class="label">Hız</span>
+          <div class="seg" data-opt="speed">
+            <button data-val="0.5">%50</button>
+            <button data-val="0.75">%75</button>
+            <button data-val="1">%100</button>
+          </div>
+        </div>
+        <div class="option-row">
+          <span class="label">Bekleme modu</span>
+          <label class="switch"><input type="checkbox" id="opt-wait"><span></span></label>
+          <span class="muted small">Nota çizgiye gelince doğru tuşa basana kadar bekler</span>
+        </div>
+        <p id="song-info" class="muted small"></p>
+        <div class="row">
+          <button id="start-btn" class="btn primary big">Başla</button>
+          <label class="btn ghost file-btn small">Başka .mid seç
+            <input id="midi-file-2" type="file" accept=".mid,.midi,audio/midi,audio/x-midi">
+          </label>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <!-- Oyun ekranı -->
+  <section id="play" class="screen play">
+    <header class="playbar">
+      <button class="btn ghost icon" id="play-back" aria-label="Çık">✕</button>
+      <div class="progress"><div id="progress-fill"></div></div>
+      <div id="play-hint" class="hint"></div>
+      <div class="meter" title="Mikrofon seviyesi"><div id="play-level"></div></div>
+      <button class="btn ghost icon" id="pause-btn" aria-label="Duraklat">❚❚</button>
+    </header>
+    <div id="stage" class="stage">
+      <div id="stage-spacer" class="stage-spacer"></div>
+      <canvas id="stage-canvas"></canvas>
+    </div>
+    <div id="countdown" class="overlay hidden"><div class="count"></div></div>
+    <div id="paused" class="overlay hidden">
+      <div class="card center">
+        <h2>Duraklatıldı</h2>
+        <div class="row">
+          <button class="btn primary" id="resume-btn">Devam</button>
+          <button class="btn ghost" id="restart-btn">Baştan</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sonuç ekranı -->
+  <section id="results" class="screen">
+    <main class="results-main">
+      <h1>Şarkı bitti! 🎉</h1>
+      <div class="stats">
+        <div class="stat"><div class="num" id="r-acc">0%</div><div class="muted">Doğruluk</div></div>
+        <div class="stat"><div class="num" id="r-rhythm">0%</div><div class="muted">Ritim</div></div>
+        <div class="stat"><div class="num" id="r-time">0:00</div><div class="muted">Toplam süre</div></div>
+      </div>
+      <p id="r-detail" class="muted"></p>
+      <div class="row">
+        <button class="btn primary" id="again-btn">Tekrar çal</button>
+        <button class="btn ghost" data-go="home">Kütüphane</button>
+      </div>
+    </main>
+  </section>
+
+  <!-- Akort testi -->
+  <section id="tuner" class="screen">
+    <header class="topbar">
+      <button class="btn ghost icon" data-go="home" aria-label="Geri">‹</button>
+      <h1>Akort testi</h1>
+      <div class="spacer"></div>
+      <button class="btn primary" id="tuner-mic">Mikrofonu aç</button>
+    </header>
+    <main class="tuner-main">
+      <div class="tuner-left">
+        <div id="t-note" class="t-note">–</div>
+        <div id="t-freq" class="t-freq">— Hz</div>
+        <div class="cents">
+          <div class="cents-scale"><span>-50</span><span>0</span><span>+50</span></div>
+          <div class="cents-track"><div id="t-needle" class="needle"></div></div>
+        </div>
+        <div id="t-last" class="muted small">Son algılanan tuşlar: –</div>
+      </div>
+      <div class="tuner-right">
+        <label class="label">Mikrofon seviyesi</label>
+        <div class="level-big"><div id="t-level"></div><div id="t-gate" class="gate"></div></div>
+        <label class="label" for="t-sens">Hassasiyet <span id="t-sens-val"></span></label>
+        <input id="t-sens" type="range" min="0" max="100" step="1" class="sens">
+        <p class="muted small">Sarı çizgi eşik değeridir. Piyano sustuğunda yeşil çubuk çizginin altında, tuşa basınca üstünde olmalı.</p>
+      </div>
+    </main>
+    <div id="tuner-stage" class="stage tuner-stage">
+      <div id="tuner-spacer" class="stage-spacer"></div>
+      <canvas id="tuner-canvas"></canvas>
+    </div>
+  </section>
+
+  <!-- Ayarlar -->
+  <section id="settings" class="screen">
+    <header class="topbar">
+      <button class="btn ghost icon" data-go="home" aria-label="Geri">‹</button>
+      <h1>Ayarlar</h1>
+    </header>
+    <main class="settings-main">
+      <div class="option-row">
+        <label class="label" for="s-sens">Mikrofon hassasiyeti <span id="s-sens-val"></span></label>
+        <input id="s-sens" type="range" min="0" max="100" step="1" class="sens">
+      </div>
+      <div class="option-row">
+        <span class="label">Oktav farkını yoksay</span>
+        <label class="switch"><input type="checkbox" id="s-octave"><span></span></label>
+        <span class="muted small">Mikrofon bazen notayı bir oktav yukarı/aşağı duyabilir. Açıksa doğru nota ismi yeterli.</span>
+      </div>
+      <div class="option-row">
+        <span class="label">MIDI klavye</span>
+        <button class="btn ghost" id="s-midi">MIDI klavyeyi bağla</button>
+        <span id="s-midi-status" class="muted small"></span>
+      </div>
+      <p class="muted small">İpucu: Piyano başında değilken ekrandaki klavyeye dokunarak da deneyebilirsin.</p>
+    </main>
+  </section>
+
+  <div id="rotate" class="rotate-hint">
+    <div>📱↻</div>
+    <p>En iyi deneyim için telefonu yatay çevir.</p>
+    <button class="btn ghost small" id="rotate-dismiss">Yine de devam et</button>
+  </div>
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="js/vendor/Midi.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
