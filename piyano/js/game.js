@@ -24,6 +24,11 @@ export class Game {
     this.wrong = 0;
     this.hits = []; // { expected (şarkı sn), actual (gerçek sn) }
     this.nextIdx = 0; // ilk bekleyen zorunlu notanın indeksi (required dizisinde)
+    this.streak = 0;    // art arda doğru nota sayısı
+    this.maxStreak = 0;
+    this.loop = null;   // { a, b } şarkı saniyesi: bölüm tekrarı
+    this.loopCount = 0;
+    this.lastJudge = null; // son basışın değerlendirmesi (ekranda kısa yazı)
 
     // Adımlar: aynı anda çalınacak zorunlu notalar bir adım (tek nota veya akor)
     this.steps = [];
@@ -54,7 +59,14 @@ export class Game {
     if (this.paused || this.finished) return;
     this.realTime += dt;
     const target = this.songTime + dt * this.opts.speed;
-    const next = this.advancePointer();
+    let next = this.advancePointer();
+
+    // Bölüm tekrarı: B noktasına gelince A'ya dön
+    if (this.loop && target >= this.loop.b && (!next || next.time >= this.loop.b)) {
+      this.seek(this.loop.a);
+      this.loopCount++;
+      return;
+    }
 
     if (this.opts.wait && next && target >= next.time) {
       // Bekleme modu: nota çizgiye geldi, doğru tuş basılana kadar dur
@@ -69,7 +81,7 @@ export class Game {
         for (let i = this.nextIdx; i < this.required.length; i++) {
           const n = this.required[i];
           if (n.time > this.songTime - HIT_WINDOW) break;
-          if (n.state === 'pending') n.state = 'missed';
+          if (n.state === 'pending') { n.state = 'missed'; this.streak = 0; }
         }
       }
     }
@@ -118,10 +130,23 @@ export class Game {
       const n = candidates[0];
       n.state = 'hit';
       this.hits.push({ expected: n.time, actual: this.realTime });
+      this.streak++;
+      this.maxStreak = Math.max(this.maxStreak, this.streak);
+      // Zamanlama: bekleme modunda ritim aranmaz
+      const off = this.songTime - n.time; // + geç, - erken
+      let label = 'Doğru!';
+      if (!this.waiting && !secondary) {
+        if (Math.abs(off) < 0.09) label = 'Harika!';
+        else if (Math.abs(off) < 0.18) label = 'İyi';
+        else label = off > 0 ? 'Geç' : 'Erken';
+      }
+      if (!secondary) this.lastJudge = { label, kind: 'correct', midi: n.midi, at: performance.now() };
       return 'correct';
     }
     if (window.length && !secondary) {
       this.wrong++;
+      this.streak = 0;
+      this.lastJudge = { label: 'Yanlış', kind: 'wrong', midi, at: performance.now() };
       return 'wrong';
     }
     return 'free'; // beklenen bir nota yokken basıldı: ceza yok
@@ -157,6 +182,7 @@ export class Game {
       hit,
       total,
       wrong: this.wrong,
+      maxStreak: this.maxStreak,
       missed: this.required.filter((n) => n.state === 'missed').length,
     };
   }

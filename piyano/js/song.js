@@ -93,7 +93,7 @@ export function parseMidi(buf, entry) {
   const shift = 2 - first;
   notes.forEach((n, i) => { n.time += shift; n.id = i; });
   const end = notes.reduce((m, n) => Math.max(m, n.time + n.duration), 0);
-  return { ...entry, notes, duration: end + 1, bpm: midi.header.tempos[0]?.bpm ?? 120 };
+  return { ...entry, notes, duration: end + 1, bpm: midi.header.tempos[0]?.bpm ?? 120, beat0: shift % (60 / (midi.header.tempos[0]?.bpm ?? 120)) };
 }
 
 function toBase64(buf) {

@@ -2,7 +2,7 @@
 // Canvas görünür alanda sabit durur (position: sticky); içindeki "spacer" klavyenin
 // tam genişliğini verir, kaydırma miktarı scrollLeft'ten okunur.
 
-import { LOW_MIDI, HIGH_MIDI, isBlack, pitchClass, midiToName } from './notes.js';
+import { LOW_MIDI, HIGH_MIDI, isBlack, noteLabel, noteLabelOct } from './notes.js';
 
 export const COLORS = {
   bg: '#0d1017',
@@ -32,6 +32,9 @@ export class Renderer {
     this.ctx = canvas.getContext('2d');
     this.keyFlash = new Map(); // midi -> { kind: 'correct'|'wrong'|'neutral', until }
     this.held = new Map();     // midi -> kind (basılı tutulan tuş)
+    this.particles = [];       // doğru basışta çıkan kıvılcımlar
+    this.popups = [];          // "Harika!" gibi kısa yazılar
+    this.showBarLabels = true;
     this.resize();
   }
 
@@ -96,6 +99,95 @@ export class Renderer {
     this.keyFlash.set(midi, { kind, until: performance.now() + ms });
   }
 
+  // Doğru basışta tuşun üstünde kıvılcım + parıltı
+  burst(midi, color) {
+    const k = this.keys.get(midi);
+    if (!k) return;
+    const cx = k.x + k.w / 2;
+    for (let i = 0; i < 16; i++) {
+      const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
+      const v = 90 + Math.random() * 220;
+      this.particles.push({ x: cx + (Math.random() - 0.5) * k.w * 0.6, y: this.hitY - 2, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.45 + Math.random() * 0.35, age: 0, color, r: 1.5 + Math.random() * 2.5 });
+    }
+    this.particles.push({ glow: true, x: cx, y: this.hitY, w: k.w, age: 0, life: 0.35, color });
+    if (this.particles.length > 400) this.particles.splice(0, this.particles.length - 400);
+  }
+
+  popup(midi, text, color) {
+    const k = this.keys.get(midi);
+    if (!k) return;
+    this.popups = this.popups.filter((p) => performance.now() - p.at < 800).slice(-3);
+    this.popups.push({ x: k.x + k.w / 2, text, color, at: performance.now() });
+  }
+
+  drawEffects(sx, dt) {
+    const { ctx } = this;
+    const now = performance.now();
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    this.particles = this.particles.filter((p) => (p.age += dt) < p.life);
+    for (const p of this.particles) {
+      const t = 1 - p.age / p.life;
+      if (p.glow) {
+        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.w * 1.4);
+        g.addColorStop(0, hexA(p.color, 0.55 * t));
+        g.addColorStop(1, hexA(p.color, 0));
+        ctx.fillStyle = g;
+        ctx.fillRect(p.x - p.w * 1.4, p.y - p.w * 1.4, p.w * 2.8, p.w * 1.4);
+        continue;
+      }
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 520 * dt;
+      ctx.globalAlpha = t;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * t + 0.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    this.popups = this.popups.filter((p) => now - p.at < 800);
+    for (const p of this.popups) {
+      const t = (now - p.at) / 800;
+      ctx.globalAlpha = 1 - t * t;
+      ctx.font = `800 ${Math.round(15 + 4 * (1 - t))}px system-ui, -apple-system, sans-serif`;
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+      const y = this.hitY - 34 - t * 40;
+      ctx.strokeText(p.text, p.x, y);
+      ctx.fillStyle = p.color;
+      ctx.fillText(p.text, p.x, y);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Ölçü/vuruş çizgileri ve bölüm tekrarı (A–B) işaretleri
+  drawGrid({ songTime, bpm, beat0, loop }, sx) {
+    const { ctx } = this;
+    const topTime = songTime + this.hitY / this.pxPerSec;
+    if (bpm) {
+      const beat = 60 / bpm;
+      let k = Math.ceil((songTime - beat0) / beat);
+      for (let t = beat0 + k * beat; t < topTime; t += beat, k++) {
+        const y = this.hitY - (t - songTime) * this.pxPerSec;
+        ctx.fillStyle = k % 4 === 0 ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.035)';
+        ctx.fillRect(sx, Math.round(y), this.w, 1);
+      }
+    }
+    if (loop) {
+      ctx.font = '700 12px system-ui, -apple-system, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'bottom';
+      for (const [t, name] of [[loop.a, 'A'], [loop.b, 'B']]) {
+        if (t == null || t < songTime || t > topTime) continue;
+        const y = this.hitY - (t - songTime) * this.pxPerSec;
+        ctx.fillStyle = 'rgba(255,214,90,0.7)';
+        ctx.fillRect(sx, Math.round(y) - 1, this.w, 2);
+        ctx.fillText(name, sx + 6, y - 3);
+      }
+    }
+  }
+
   // Bir notayı görünür alana getir (yumuşak kaydırma)
   ensureVisible(midis) {
     if (!midis.length) return;
@@ -126,6 +218,8 @@ export class Renderer {
   draw(state = {}) {
     const { ctx, dpr } = this;
     const now = performance.now();
+    const dt = Math.min(0.05, (now - (this.lastDraw || now)) / 1000);
+    this.lastDraw = now;
     const sx = this.scroller.scrollLeft;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.fillStyle = COLORS.bg;
@@ -134,9 +228,11 @@ export class Renderer {
     ctx.translate(-sx, 0);
 
     this.drawLanes(sx);
+    if (state.notes) this.drawGrid(state, sx);
     if (state.notes) this.drawNotes(state, sx);
     this.drawHitLine(sx, state.waiting);
     this.drawKeyboard(state, now, sx);
+    this.drawEffects(sx, dt);
     ctx.restore();
   }
 
@@ -188,14 +284,18 @@ export class Renderer {
       if (hgt <= 0) continue;
       roundRect(ctx, x, yTop, w, hgt, Math.min(6, w / 3));
       ctx.fillStyle = fill;
+      if (n.required && n.state === 'pending' && yBottom > this.hitY - 24) {
+        ctx.shadowColor = fill; ctx.shadowBlur = 14; // çizgiye yaklaşan nota parlasın
+      }
       ctx.fill();
+      ctx.shadowBlur = 0;
       ctx.lineWidth = 1.5;
       ctx.strokeStyle = edge;
       ctx.stroke();
 
-      if (hgt > 16 && w > 14) {
+      if (this.showBarLabels && hgt > 16 && w > 14) {
         ctx.fillStyle = n.required && n.state === 'pending' ? 'rgba(0,0,0,0.75)' : 'rgba(0,0,0,0.6)';
-        ctx.fillText(pitchClass(n.midi), x + w / 2, clipBottom - 3);
+        ctx.fillText(noteLabel(n.midi), x + w / 2, clipBottom - 3);
       }
       if (order?.has(n.id)) badges.push([x + w / 2, yTop, w, order.get(n.id)]);
     }
@@ -285,7 +385,7 @@ export class Renderer {
       const pc = m % 12;
       ctx.fillStyle = c ? '#0d1017' : ex || COLORS.label;
       ctx.font = `${pc === 0 ? 700 : 600} ${Math.max(10, Math.min(15, k.w * 0.3))}px system-ui, -apple-system, sans-serif`;
-      ctx.fillText(pc === 0 ? midiToName(m) : pitchClass(m), k.x + k.w / 2, y + H - 14);
+      ctx.fillText(pc === 0 ? noteLabelOct(m) : noteLabel(m), k.x + k.w / 2, y + H - 14);
     }
 
     // Siyah tuşlar
@@ -304,7 +404,7 @@ export class Renderer {
       if (k.w > 22) {
         ctx.fillStyle = c ? '#0d1017' : 'rgba(255,255,255,0.45)';
         ctx.font = `600 ${Math.max(8, Math.min(11, k.w * 0.3))}px system-ui, -apple-system, sans-serif`;
-        ctx.fillText(pitchClass(m), k.x + k.w / 2, y + bH - 12);
+        ctx.fillText(noteLabel(m), k.x + k.w / 2, y + bH - 12);
       }
     }
 
@@ -323,4 +423,9 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.arcTo(x, y + h, x, y, r);
   ctx.arcTo(x, y, x + w, y, r);
   ctx.closePath();
+}
+
+function hexA(hex, a) {
+  const v = parseInt(hex.slice(1), 16);
+  return `rgba(${(v >> 16) & 255},${(v >> 8) & 255},${v & 255},${a})`;
 }

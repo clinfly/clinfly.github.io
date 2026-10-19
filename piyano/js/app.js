@@ -6,16 +6,17 @@ import { MidiInput } from './input/MidiInput.js';
 import { TouchInput } from './input/TouchInput.js';
 import { LIBRARY, loadSong, importSongFile } from './song.js';
 import { Game } from './game.js';
-import { Renderer } from './renderer.js';
-import { midiToName, LOW_MIDI, HIGH_MIDI } from './notes.js';
+import { Renderer, COLORS } from './renderer.js';
+import { noteLabelOct as midiToName, setLabelStyle, LOW_MIDI, HIGH_MIDI } from './notes.js';
 
 const $ = (sel) => document.querySelector(sel);
 
 // ---------- Ayarlar (cihazda saklanır) ----------
-const DEFAULTS = { sensitivity: 70, octaveTolerant: false, hands: 'R', speed: '0.75', wait: true };
+const DEFAULTS = { sensitivity: 70, octaveTolerant: false, hands: 'R', speed: '0.75', wait: true, labels: 'letter', barLabels: true, metro: false };
 const settings = { ...DEFAULTS, ...readJSON('piano.settings') };
 // v2: yeni algılayıcı için varsayılan hassasiyet 60 -> 70
 if (!settings.v2) { if (settings.sensitivity === 60) settings.sensitivity = 70; settings.v2 = true; }
+setLabelStyle(settings.labels);
 function saveSettings() {
   try { localStorage.setItem('piano.settings', JSON.stringify(settings)); } catch { /* yok say */ }
 }
@@ -149,6 +150,9 @@ function refreshSetup(song) {
     seg.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.val === String(settings[key])));
   }
   $('#opt-wait').checked = settings.wait;
+  $('#opt-metro').checked = settings.metro;
+  const best = readJSON('piano.best')[song.id];
+  $('#song-best').textContent = best ? `En iyi skorun: %${best.accuracy} doğruluk · ${'★'.repeat(best.stars)}${'☆'.repeat(3 - best.stars)}` : '';
 }
 
 document.querySelectorAll('.seg').forEach((seg) => {
@@ -157,10 +161,43 @@ document.querySelectorAll('.seg').forEach((seg) => {
     if (!b) return;
     settings[seg.dataset.opt] = b.dataset.val;
     saveSettings();
+    if (seg.dataset.opt === 'labels') setLabelStyle(b.dataset.val);
     seg.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
   });
 });
 $('#opt-wait').onchange = (e) => { settings.wait = e.target.checked; saveSettings(); };
+$('#opt-metro').onchange = (e) => { settings.metro = e.target.checked; saveSettings(); };
+
+// ---------- Metronom ----------
+let audioCtx = null;
+let lastClickAt = 0;
+function ensureAudio() {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  } catch { audioCtx = null; }
+}
+function click(accent) {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.frequency.value = accent ? 1760 : 1320;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(accent ? 0.5 : 0.3, t + 0.002);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+  osc.connect(g).connect(audioCtx.destination);
+  osc.start(t);
+  osc.stop(t + 0.06);
+  lastClickAt = performance.now();
+}
+// Bir vuruşun süresi (şarkı sn); çok hızlı/yavaş tempoları makul aralığa çek
+function beatSec() {
+  let b = 60 / (game.song.bpm || 120);
+  while (b < 0.3) b *= 2;
+  while (b > 1.3) b /= 2;
+  return b;
+}
 
 async function onMidiFile(e) {
   const file = e.target.files[0];
@@ -188,6 +225,9 @@ let game = null;
 let raf = 0;
 let lastT = 0;
 let countdownUntil = 0;
+let countdownStart = 0;
+let countIn = null; // metronom açıksa başlamadan 4 vuruş say
+let lastBeat = null;
 let userScrolledAt = 0;
 
 $('#start-btn').onclick = async () => {
@@ -198,6 +238,7 @@ $('#start-btn').onclick = async () => {
 };
 
 function startGame(song) {
+  if (settings.metro) ensureAudio();
   game = new Game(song, {
     hands: settings.hands,
     speed: Number(settings.speed),
@@ -206,12 +247,19 @@ function startGame(song) {
   });
   go('play');
   seqKey = '';
+  loopA = null; shownLoops = 0;
+  renderer.showBarLabels = settings.barLabels;
+  setLoopUI();
+  updateStreak();
   $('#paused').classList.add('hidden');
   requestAnimationFrame(() => {
     renderer.resize();
     const first = game.required[0] || game.notes[0];
     if (first) renderer.centerOn(first.midi);
-    countdownUntil = performance.now() + 3000;
+    countIn = settings.metro ? { beat: beatSec() / game.opts.speed * 1000, done: 0 } : null;
+    countdownUntil = performance.now() + (countIn ? countIn.beat * 4 : 3000);
+    countdownStart = performance.now();
+    lastBeat = null;
     lastT = performance.now();
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(frame);
@@ -232,10 +280,22 @@ function frame(t) {
   const cd = $('#countdown');
   if (t < countdownUntil) {
     cd.classList.remove('hidden');
-    cd.querySelector('.count').textContent = Math.ceil((countdownUntil - t) / 1000);
+    if (countIn) {
+      const k = Math.floor((t - countdownStart) / countIn.beat);
+      if (k >= countIn.done) { click(k === 0); countIn.done = k + 1; }
+      cd.querySelector('.count').textContent = Math.min(4, k + 1);
+    } else {
+      cd.querySelector('.count').textContent = Math.ceil((countdownUntil - t) / 1000);
+    }
   } else {
     cd.classList.add('hidden');
     game.update(dt);
+    if (settings.metro && !game.waiting && !game.paused) {
+      const b = beatSec();
+      const k = Math.floor((game.songTime - (game.song.beat0 || 0)) / b);
+      if (lastBeat !== null && k > lastBeat) click(k % 4 === 0);
+      lastBeat = k;
+    }
   }
 
   const expected = game.expectedNotes();
@@ -254,9 +314,12 @@ function frame(t) {
   for (let i = cur; i < Math.min(game.steps.length, cur + 6); i++) {
     for (const n of game.steps[i].notes) if (n.state === 'pending') order.set(n.id, i - cur + 1);
   }
-  renderer.draw({ notes: game.notes, songTime: game.songTime, expectedHand, waiting: game.waiting, order });
+  renderer.draw({ notes: game.notes, songTime: game.songTime, expectedHand, waiting: game.waiting, order, bpm: 60 / beatSec(), beat0: game.song.beat0 || 0, loop: loopA === null ? null : { a: loopA, b: game.loop?.b } });
+  if (game.loopCount !== shownLoops) { shownLoops = game.loopCount; lastBeat = null; seqKey = ''; userScrolledAt = 0; toast(`Tekrar ${shownLoops}`, 900); }
 
   $('#progress-fill').style.width = (game.progress * 100).toFixed(1) + '%';
+  if (loopA !== null && !game.loop) setLoopUI();
+  updateStreak();
   $('#time-label').textContent = fmtTime(game.songTime / game.opts.speed) + ' / ' + fmtTime(game.song.duration / game.opts.speed);
   $('#play-hint').textContent = game.waiting ? 'Bekliyor: ' + expected.map((n) => midiToName(n.midi)).join(' ') : '';
 
@@ -322,10 +385,20 @@ function fmtTime(sec) {
 
 function showResults() {
   const r = game.results();
+  const stars = r.accuracy >= 90 ? 3 : r.accuracy >= 70 ? 2 : r.accuracy >= 40 ? 1 : 0;
+  $('#r-stars').innerHTML = [0, 1, 2].map((i) => `<span class="${i < stars ? '' : 'off'}">⭐</span>`).join('');
+  const bests = readJSON('piano.best');
+  const prev = bests[selected.id];
+  if (!prev || r.accuracy > prev.accuracy) {
+    bests[selected.id] = { accuracy: r.accuracy, stars, at: Date.now() };
+    try { localStorage.setItem('piano.best', JSON.stringify(bests)); } catch { /* yok say */ }
+  }
+  $('#r-best').textContent = !prev ? '' : r.accuracy > prev.accuracy ? `Yeni rekor! Önceki en iyi: %${prev.accuracy}` : `En iyi skorun: %${prev.accuracy}`;
   $('#r-acc').textContent = r.accuracy + '%';
   $('#r-rhythm').textContent = r.rhythm + '%';
   $('#r-time').textContent = `${Math.floor(r.seconds / 60)}:${String(r.seconds % 60).padStart(2, '0')}`;
-  $('#r-detail').textContent = `${r.total} notanın ${r.hit} tanesi doğru · ${r.wrong} yanlış tuş` + (r.missed ? ` · ${r.missed} kaçırılan` : '');
+  $('#r-detail').textContent = `${r.total} notanın ${r.hit} tanesi doğru · ${r.wrong} yanlış tuş`
+    + (r.missed ? ` · ${r.missed} kaçırılan` : '') + (r.maxStreak > 1 ? ` · en uzun seri ${r.maxStreak}` : '');
   go('results');
 }
 $('#again-btn').onclick = () => getSong(selected).then((s) => s && startGame(s));
@@ -338,7 +411,46 @@ function seekBy(sec) {
   game.seek(game.songTime + sec * game.opts.speed);
   seqKey = '';
   userScrolledAt = 0;
+  lastBeat = null;
 }
+
+// ---------- Bölüm tekrarı (A–B) ----------
+// 1. dokunuş: A = şu an, 2. dokunuş: B = şu an (A'ya geri döner ve tekrarlar), 3. dokunuş: kapat
+let loopA = null;
+let shownLoops = 0;
+const loopBtn = $('#loop-btn');
+function setLoopUI() {
+  const reg = $('#loop-region');
+  loopBtn.classList.toggle('armed', loopA !== null && !game?.loop);
+  loopBtn.classList.toggle('on', !!game?.loop);
+  loopBtn.textContent = game?.loop ? '🔁 A–B' : loopA !== null ? 'A–?' : 'A–B';
+  reg.classList.toggle('hidden', loopA === null || !game);
+  if (game && loopA !== null) {
+    const d = game.song.duration;
+    const b = game.loop ? game.loop.b : game.songTime;
+    reg.style.left = (loopA / d * 100) + '%';
+    reg.style.width = Math.max(0.5, (b - loopA) / d * 100) + '%';
+  }
+}
+loopBtn.onclick = () => {
+  if (!game) return;
+  if (loopA === null) {
+    loopA = Math.max(0, game.songTime - 0.3);
+    toast('A noktası işaretlendi. Bölümün sonunda tekrar dokun.');
+  } else if (!game.loop) {
+    const b = game.songTime + 0.2;
+    if (b - loopA < 1) { toast('Bölüm çok kısa, biraz daha ilerle.'); return; }
+    game.loop = { a: loopA, b };
+    game.seek(loopA);
+    seqKey = ''; userScrolledAt = 0; lastBeat = null;
+    toast('Bu bölüm tekrar edecek. Kapatmak için tekrar dokun.');
+  } else {
+    game.loop = null;
+    loopA = null;
+    toast('Bölüm tekrarı kapandı.');
+  }
+  setLoopUI();
+};
 $('#rew-btn').onclick = () => seekBy(-5);
 $('#fwd-btn').onclick = () => seekBy(5);
 // İlerleme çubuğuna dokun/sürükle: o noktaya git
@@ -351,6 +463,7 @@ function seekToPointer(e) {
   game.seek(frac * game.song.duration);
   seqKey = '';
   userScrolledAt = 0;
+  lastBeat = null;
 }
 progressEl.addEventListener('pointerdown', (e) => { seekingBar = true; progressEl.setPointerCapture(e.pointerId); seekToPointer(e); });
 progressEl.addEventListener('pointermove', (e) => { if (seekingBar) seekToPointer(e); });
@@ -373,11 +486,29 @@ window.addEventListener('resize', () => {
 
 // ---------- Giriş olaylarını oyuna ve ekrana bağla ----------
 const lastNotes = [];
+let streakShown = -1;
+function updateStreak() {
+  const n = game ? game.streak : 0;
+  if (n === streakShown) return;
+  const el = $('#streak');
+  el.classList.toggle('hidden', n < 3);
+  el.textContent = '🔥 ' + n;
+  if (n > streakShown && n >= 3) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+  streakShown = n;
+}
 input.on('noteon', ({ midi, source, chordPart }) => {
+  // Metronom tıkını mikrofon nota sanmasın
+  if (source === 'mic' && performance.now() - lastClickAt < 120) return;
   let kind = 'neutral';
   if (game && current === 'play') {
     const res = game.noteOn(midi, !!chordPart);
     kind = res === 'correct' ? 'correct' : res === 'wrong' ? 'wrong' : 'neutral';
+    const j = game.lastJudge;
+    if (kind === 'correct') renderer.burst(midi, COLORS.hit);
+    if (j && performance.now() - j.at < 50 && kind !== 'neutral') {
+      renderer.popup(j.midi, j.label, j.kind === 'wrong' ? COLORS.wrong : j.label === 'Harika!' ? '#ffd65a' : COLORS.hit);
+    }
+    updateStreak();
   }
   const r = current === 'tuner' ? tunerRenderer : renderer;
   r.held.set(midi, kind);
@@ -493,6 +624,8 @@ $('#s-sens').oninput = onSens;
 function enterSettings() {
   syncSensitivity();
   $('#s-octave').checked = settings.octaveTolerant;
+  $('#s-barlabels').checked = settings.barLabels;
+  document.querySelectorAll('[data-opt="labels"] button').forEach((b) => b.classList.toggle('on', b.dataset.val === settings.labels));
   document.querySelectorAll('[data-opt="detector"] button').forEach((b) => b.classList.toggle('on', b.dataset.val === (settings.detector || 'advanced')));
   if (!MidiInput.supported) {
     $('#s-midi').disabled = true;
@@ -500,6 +633,7 @@ function enterSettings() {
   }
 }
 $('#s-octave').onchange = (e) => { settings.octaveTolerant = e.target.checked; saveSettings(); };
+$('#s-barlabels').onchange = (e) => { settings.barLabels = e.target.checked; saveSettings(); };
 document.querySelector('[data-opt="detector"]').addEventListener('click', (e) => {
   const b = e.target.closest('button');
   if (b) mic.setMode(b.dataset.val).catch((err) => toast(err.message));
@@ -519,4 +653,4 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 // Test kolaylığı için konsoldan erişim
-window.piano = { input, mic, settings, get game() { return game; } };
+window.piano = { input, mic, touch, settings, get game() { return game; } };

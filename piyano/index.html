@@ -2,9 +2,9 @@
 <html lang="tr">
 <head>
   <meta charset="utf-8">
+  <meta name="robots" content="noindex, nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <title>Piyano Öğren</title>
-  <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#0d1017">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
@@ -61,6 +61,7 @@
         <div class="option-row">
           <span class="label">Hız</span>
           <div class="seg" data-opt="speed">
+            <button data-val="0.3">%30</button>
             <button data-val="0.5">%50</button>
             <button data-val="0.75">%75</button>
             <button data-val="1">%100</button>
@@ -71,7 +72,13 @@
           <label class="switch"><input type="checkbox" id="opt-wait"><span></span></label>
           <span class="muted small">Nota çizgiye gelince doğru tuşa basana kadar bekler</span>
         </div>
+        <div class="option-row">
+          <span class="label">Metronom</span>
+          <label class="switch"><input type="checkbox" id="opt-metro"><span></span></label>
+          <span class="muted small">Başlamadan önce 4 vuruş sayar, çalarken tempoyu tıklar. Hoparlörden duyulan tık mikrofona karışmasın diye kulaklık önerilir.</span>
+        </div>
         <p id="song-info" class="muted small"></p>
+        <p id="song-best" class="muted small"></p>
         <div class="row">
           <button id="start-btn" class="btn primary big">Başla</button>
           <label class="btn ghost file-btn small">Başka .mid seç
@@ -87,8 +94,10 @@
     <header class="playbar">
       <button class="btn ghost icon" id="play-back" aria-label="Çık">✕</button>
       <button class="btn ghost icon" id="rew-btn" aria-label="5 saniye geri">⏪</button>
-      <div class="progress" title="Dokunarak veya sürükleyerek şarkıda ileri/geri git"><div id="progress-fill"></div></div>
+      <div class="progress" title="Dokunarak veya sürükleyerek şarkıda ileri/geri git"><div id="loop-region" class="loop-region hidden"></div><div id="progress-fill"></div></div>
       <button class="btn ghost icon" id="fwd-btn" aria-label="5 saniye ileri">⏩</button>
+      <button class="btn ghost loop-btn" id="loop-btn" title="Bölüm tekrarı: 1. dokunuş A, 2. dokunuş B, 3. dokunuş kapat">A–B</button>
+      <span id="streak" class="streak hidden"></span>
       <span id="time-label" class="time-label">0:00 / 0:00</span>
       <div id="play-hint" class="hint"></div>
       <div class="meter" title="Mikrofon seviyesi"><div id="play-level"></div></div>
@@ -115,12 +124,14 @@
   <section id="results" class="screen">
     <main class="results-main">
       <h1>Şarkı bitti! 🎉</h1>
+      <div id="r-stars" class="stars"></div>
       <div class="stats">
         <div class="stat"><div class="num" id="r-acc">0%</div><div class="muted">Doğruluk</div></div>
         <div class="stat"><div class="num" id="r-rhythm">0%</div><div class="muted">Ritim</div></div>
         <div class="stat"><div class="num" id="r-time">0:00</div><div class="muted">Toplam süre</div></div>
       </div>
       <p id="r-detail" class="muted"></p>
+      <p id="r-best" class="muted small"></p>
       <div class="row">
         <button class="btn primary" id="again-btn">Tekrar çal</button>
         <button class="btn ghost" data-go="home">Kütüphane</button>
@@ -178,6 +189,18 @@
           <button data-val="simple">Basit</button>
         </div>
         <span class="muted small">Gelişmiş: pedallı ve hızlı çalarken daha iyi. Basit: sessiz odada tek tek notalar için. Hangisi senin piyanonda daha iyi çalışıyorsa onu seç.</span>
+      </div>
+      <div class="option-row">
+        <span class="label">Nota adları</span>
+        <div class="seg" data-opt="labels">
+          <button data-val="letter">C D E</button>
+          <button data-val="solfege">Do Re Mi</button>
+        </div>
+      </div>
+      <div class="option-row">
+        <span class="label">Düşen çubuklarda nota adı</span>
+        <label class="switch"><input type="checkbox" id="s-barlabels"><span></span></label>
+        <span class="muted small">Kapatırsan notayı yazıdan değil tuşun yerinden tanımayı öğrenirsin.</span>
       </div>
       <div class="option-row">
         <span class="label">Oktav farkını yoksay</span>
