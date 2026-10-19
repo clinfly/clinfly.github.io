@@ -292,7 +292,7 @@ export class Renderer {
       let fill, edge;
       if (n.state === 'hit') { fill = COLORS.hit; edge = '#17a86f'; }
       else if (n.state === 'missed') { fill = COLORS.wrong; edge = '#a8202e'; }
-      else if (!n.required) { fill = COLORS.other; edge = 'rgba(255,255,255,0.12)'; }
+      else if (!n.required && !n.demo) { fill = COLORS.other; edge = 'rgba(255,255,255,0.12)'; }
       else if (n.hand === 'R') { fill = COLORS.right; edge = COLORS.rightDark; }
       else { fill = COLORS.left; edge = COLORS.leftDark; }
 
@@ -359,6 +359,7 @@ export class Renderer {
     if (kind === 'correct') return COLORS.hit;
     if (kind === 'wrong') return COLORS.wrong;
     if (kind === 'neutral') return '#8fb8ff';
+    if (kind === 'listen') return '#ffd65a';
     return null;
   }
 

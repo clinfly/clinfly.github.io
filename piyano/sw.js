@@ -1,11 +1,11 @@
 // Servis çalışanı: uygulamayı çevrimdışı da açılabilir yapar.
 // Uygulama dosyalarında değişiklik yaptığında VERSION'ı artır.
-const VERSION = 'piano-v8';
+const VERSION = 'piano-v9';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/style.css',
   'js/app.js', 'js/game.js', 'js/renderer.js', 'js/song.js', 'js/notes.js',
   'js/input/InputManager.js', 'js/input/MicInput.js', 'js/input/MidiInput.js',
-  'js/input/TouchInput.js', 'js/input/yin.js', 'js/input/SimpleMicInput.js', 'js/vendor/Midi.js',
+  'js/input/TouchInput.js', 'js/sound.js', 'js/input/yin.js', 'js/input/SimpleMicInput.js', 'js/vendor/Midi.js',
   'icons/icon-192.png', 'icons/apple-touch-icon.png',
 ];
 

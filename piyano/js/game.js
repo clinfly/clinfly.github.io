@@ -12,7 +12,8 @@ export class Game {
     this.notes = song.notes.map((n) => ({
       ...n,
       state: 'pending', // 'pending' | 'hit' | 'missed'
-      required: opts.hands === 'both' || n.hand === opts.hands,
+      required: !opts.listen && (opts.hands === 'both' || n.hand === opts.hands),
+      demo: !!opts.listen,
     }));
     this.required = this.notes.filter((n) => n.required);
     this.songTime = 0;

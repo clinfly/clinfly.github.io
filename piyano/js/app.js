@@ -6,6 +6,7 @@ import { MidiInput } from './input/MidiInput.js';
 import { TouchInput } from './input/TouchInput.js';
 import { LIBRARY, loadSong, importSongFile } from './song.js';
 import { Game } from './game.js';
+import { PianoSound } from './sound.js';
 import { Renderer, COLORS } from './renderer.js';
 import { noteLabelOct as midiToName, setLabelStyle, LOW_MIDI, HIGH_MIDI } from './notes.js';
 
@@ -182,8 +183,7 @@ let audioCtx = null;
 let lastClickAt = 0;
 function ensureAudio() {
   try {
-    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+    audioCtx = piano.ensure();
   } catch { audioCtx = null; }
 }
 function click(accent) {
@@ -200,34 +200,11 @@ function click(accent) {
   osc.stop(t + 0.06);
   lastClickAt = performance.now();
 }
-// Dokunulan notanın piyanoya benzer sesi (birkaç harmonik + sönümlenme)
+// Dokunulan notanın piyano sesi (gerçek piyano kayıtları)
+const piano = new PianoSound();
 let lastToneAt = 0;
-function playTone(midi) {
-  ensureAudio();
-  if (!audioCtx) return;
-  const t = audioCtx.currentTime + 0.005;
-  const f = 440 * Math.pow(2, (midi - 69) / 12);
-  const decay = Math.max(0.8, 2.6 - (midi - 48) * 0.035); // yüksek notalar daha çabuk söner
-  const out = audioCtx.createGain();
-  out.gain.setValueAtTime(0.0001, t);
-  out.gain.exponentialRampToValueAtTime(0.35, t + 0.006);
-  out.gain.exponentialRampToValueAtTime(0.12, t + 0.25);
-  out.gain.exponentialRampToValueAtTime(0.0001, t + decay);
-  const lp = audioCtx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.frequency.setValueAtTime(Math.min(12000, f * 9), t);
-  lp.frequency.exponentialRampToValueAtTime(Math.min(8000, f * 3), t + 0.4);
-  lp.connect(out).connect(audioCtx.destination);
-  [[1, 1], [2, 0.45], [3, 0.22], [4, 0.12], [5, 0.06]].forEach(([h, a]) => {
-    const o = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    o.type = h === 1 ? 'triangle' : 'sine';
-    o.frequency.value = f * h * (1 + 0.0004 * h * h); // hafif tel sertliği
-    g.gain.value = a;
-    o.connect(g).connect(lp);
-    o.start(t);
-    o.stop(t + decay + 0.05);
-  });
+function playTone(midi, opts) {
+  piano.play(midi, opts);
   lastToneAt = performance.now();
 }
 
@@ -276,16 +253,27 @@ $('#start-btn').onclick = async () => {
   await ensureMic(); // tıklama sırasında izin iste (iOS gereği)
   startGame(song);
 };
+// Dinle: şarkıyı uygulama kendisi çalar, tuşlar kendiliğinden yanar
+$('#listen-btn').onclick = async () => {
+  const song = await getSong(selected);
+  if (!song) return;
+  ensureAudio();
+  startGame(song, { listen: true });
+};
 
-function startGame(song) {
-  if (settings.metro) ensureAudio();
+let listenIdx = 0;
+function startGame(song, mode = {}) {
+  if (settings.metro || mode.listen) ensureAudio();
+  listenIdx = 0;
   game = new Game(song, {
+    listen: !!mode.listen,
     hands: settings.hands,
     speed: Number(settings.speed),
     wait: settings.wait,
     octaveTolerant: settings.octaveTolerant,
   });
   go('play');
+  $('#sequence').classList.toggle('hidden', !!mode.listen);
   seqKey = '';
   loopA = null; shownLoops = 0;
   renderer.showBarLabels = settings.barLabels;
@@ -304,6 +292,26 @@ function startGame(song) {
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(frame);
   });
+}
+
+// Dinleme modunda çizgiye gelen notaları çal ve tuşlarını yak
+function autoPlay() {
+  const notes = game.notes;
+  if (game.seeked) {
+    game.seeked = false;
+    listenIdx = notes.findIndex((n) => n.time >= game.songTime - 0.01);
+    if (listenIdx < 0) listenIdx = notes.length;
+  }
+  while (listenIdx < notes.length && notes[listenIdx].time <= game.songTime) {
+    const n = notes[listenIdx++];
+    if (game.songTime - n.time > 0.25) continue; // sarma sonrası eskileri çalma
+    const real = n.duration / game.opts.speed;
+    playTone(n.midi, { duration: real, volume: 0.8 });
+    n.state = 'hit';
+    renderer.held.set(n.midi, 'listen');
+    renderer.flash(n.midi, 'listen', real * 1000);
+    setTimeout(() => { if (renderer.held.get(n.midi) === 'listen') renderer.held.delete(n.midi); }, Math.max(120, real * 1000 - 30));
+  }
 }
 
 function stopGame() {
@@ -330,6 +338,7 @@ function frame(t) {
   } else {
     cd.classList.add('hidden');
     game.update(dt);
+    if (game.opts.listen) autoPlay();
     if (settings.metro && !game.waiting && !game.paused) {
       const b = beatSec();
       const k = Math.floor((game.songTime - (game.song.beat0 || 0)) / b);
@@ -361,9 +370,12 @@ function frame(t) {
   if (loopA !== null && !game.loop) setLoopUI();
   updateStreak();
   $('#time-label').textContent = fmtTime(game.songTime / game.opts.speed) + ' / ' + fmtTime(game.song.duration / game.opts.speed);
-  $('#play-hint').textContent = game.waiting ? 'Bekliyor: ' + expected.map((n) => midiToName(n.midi)).join(' ') : '';
+  $('#play-hint').textContent = game.opts.listen ? '🎧 Dinliyorsun' : game.waiting ? 'Bekliyor: ' + expected.map((n) => midiToName(n.midi)).join(' ') : '';
 
-  if (game.finished) return showResults();
+  if (game.finished) {
+    if (game.opts.listen) { toast('Dinleme bitti. Şimdi sıra sende!'); go('setup'); return; }
+    return showResults();
+  }
   raf = requestAnimationFrame(frame);
 }
 
@@ -541,8 +553,9 @@ input.on('noteon', ({ midi, source, chordPart }) => {
   if (source === 'mic' && performance.now() - lastClickAt < 120) return;
   // Telefondan çalan dokunma sesini de mikrofon piyano sanmasın
   if (source === 'mic' && performance.now() - lastToneAt < 900) return;
+  if (source === 'mic' && game?.opts.listen) return;
   let kind = 'neutral';
-  if (game && current === 'play') {
+  if (game && current === 'play' && !game.opts.listen) {
     const res = game.noteOn(midi, !!chordPart);
     kind = res === 'correct' ? 'correct' : res === 'wrong' ? 'wrong' : 'neutral';
     const j = game.lastJudge;
