@@ -1,6 +1,6 @@
 // Servis çalışanı: uygulamayı çevrimdışı da açılabilir yapar.
 // Uygulama dosyalarında değişiklik yaptığında VERSION'ı artır.
-const VERSION = 'piano-v6';
+const VERSION = 'piano-v7';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/style.css',
   'js/app.js', 'js/game.js', 'js/renderer.js', 'js/song.js', 'js/notes.js',
@@ -25,7 +25,8 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   // Önce ağ, olmazsa önbellek: güncellemeler hemen gelir, çevrimdışı da çalışır
   e.respondWith(
-    fetch(e.request)
+    // Tarayıcı önbelleğini atla: güncellemede eski CSS/JS ile yeni HTML karışmasın
+    (e.request.mode === 'navigate' ? fetch(e.request.url, { cache: 'no-cache' }) : fetch(e.request, { cache: 'no-cache' }))
       .then((res) => {
         if (res.ok) {
           const copy = res.clone();
@@ -33,6 +34,6 @@ self.addEventListener('fetch', (e) => {
         }
         return res;
       })
-      .catch(() => caches.match(e.request))
+      .catch(() => caches.match(e.request, { ignoreSearch: true }))
   );
 });
