@@ -95,6 +95,23 @@ export class Renderer {
     return null;
   }
 
+  // Ekrandaki noktada düşen nota çubuğu var mı?
+  noteAt(x, y, notes, songTime) {
+    if (y >= this.hitY) return null;
+    const ax = x + this.scroller.scrollLeft;
+    let best = null;
+    for (const n of notes) {
+      const k = this.keys.get(n.midi);
+      if (!k || ax < k.x - 4 || ax > k.x + k.w + 4) continue;
+      const yBottom = this.hitY - (n.time - songTime) * this.pxPerSec;
+      const yTop = yBottom - Math.max(14, n.duration * this.pxPerSec - 2);
+      if (y >= yTop - 6 && y <= Math.min(yBottom, this.hitY) + 6) {
+        if (!best || k.black) best = n; // siyah tuş çubukları üstte
+      }
+    }
+    return best;
+  }
+
   flash(midi, kind, ms = 450) {
     this.keyFlash.set(midi, { kind, until: performance.now() + ms });
   }

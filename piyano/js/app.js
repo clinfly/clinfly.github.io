@@ -200,6 +200,37 @@ function click(accent) {
   osc.stop(t + 0.06);
   lastClickAt = performance.now();
 }
+// Dokunulan notanın piyanoya benzer sesi (birkaç harmonik + sönümlenme)
+let lastToneAt = 0;
+function playTone(midi) {
+  ensureAudio();
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime + 0.005;
+  const f = 440 * Math.pow(2, (midi - 69) / 12);
+  const decay = Math.max(0.8, 2.6 - (midi - 48) * 0.035); // yüksek notalar daha çabuk söner
+  const out = audioCtx.createGain();
+  out.gain.setValueAtTime(0.0001, t);
+  out.gain.exponentialRampToValueAtTime(0.35, t + 0.006);
+  out.gain.exponentialRampToValueAtTime(0.12, t + 0.25);
+  out.gain.exponentialRampToValueAtTime(0.0001, t + decay);
+  const lp = audioCtx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.setValueAtTime(Math.min(12000, f * 9), t);
+  lp.frequency.exponentialRampToValueAtTime(Math.min(8000, f * 3), t + 0.4);
+  lp.connect(out).connect(audioCtx.destination);
+  [[1, 1], [2, 0.45], [3, 0.22], [4, 0.12], [5, 0.06]].forEach(([h, a]) => {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = h === 1 ? 'triangle' : 'sine';
+    o.frequency.value = f * h * (1 + 0.0004 * h * h); // hafif tel sertliği
+    g.gain.value = a;
+    o.connect(g).connect(lp);
+    o.start(t);
+    o.stop(t + decay + 0.05);
+  });
+  lastToneAt = performance.now();
+}
+
 // Bir vuruşun süresi (şarkı sn); çok hızlı/yavaş tempoları makul aralığa çek
 function beatSec() {
   let b = 60 / (game.song.bpm || 120);
@@ -508,6 +539,8 @@ function updateStreak() {
 input.on('noteon', ({ midi, source, chordPart }) => {
   // Metronom tıkını mikrofon nota sanmasın
   if (source === 'mic' && performance.now() - lastClickAt < 120) return;
+  // Telefondan çalan dokunma sesini de mikrofon piyano sanmasın
+  if (source === 'mic' && performance.now() - lastToneAt < 900) return;
   let kind = 'neutral';
   if (game && current === 'play') {
     const res = game.noteOn(midi, !!chordPart);
@@ -555,9 +588,16 @@ function bindTouchKeyboard(el, getRenderer) {
   el.addEventListener('pointerup', (e) => {
     if (!start) return;
     const moved = Math.abs(e.clientX - start.x) + Math.abs(el.scrollLeft - start.sl);
-    const m = moved < 10 ? getRenderer().keyAt(start.rx, start.ry) : null;
+    const r = getRenderer();
+    const m = moved < 10 ? r.keyAt(start.rx, start.ry) : null;
+    // Düşen notaya dokunma: sadece sesini dinlet (skora sayılmaz)
+    if (m === null && moved < 10 && el === stage && game) {
+      const n = r.noteAt(start.rx, start.ry, game.notes, game.songTime);
+      if (n) { playTone(n.midi); r.flash(n.midi, 'neutral', 400); }
+    }
     start = null;
     if (m !== null) {
+      playTone(m);
       touch.press(m);
       setTimeout(() => touch.release(m), 200);
     }
@@ -662,4 +702,4 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 // Test kolaylığı için konsoldan erişim
-window.piano = { input, mic, touch, settings, get game() { return game; } };
+window.piano = { input, mic, touch, renderer, settings, get game() { return game; } };
