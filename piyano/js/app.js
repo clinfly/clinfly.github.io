@@ -36,6 +36,7 @@ class SwitchableMic {
   get current() { return this.impls[this.mode]; }
   get running() { return this.current.running; }
   setSensitivity(v) { for (const impl of Object.values(this.impls)) impl.setSensitivity(v); }
+  setHints(midis) { this.current.setHints?.(midis); }
   start() { return this.current.start(); }
   stop() { this.current.stop(); }
   async setMode(mode) {
@@ -220,6 +221,7 @@ function startGame(song) {
 function stopGame() {
   cancelAnimationFrame(raf);
   game = null;
+  mic.setHints([]);
 }
 
 function frame(t) {
@@ -245,6 +247,8 @@ function frame(t) {
   }
   const cur = game.currentStep();
   renderSequence(cur);
+  // Mikrofona sıradaki adımın notalarını ipucu olarak ver (akor algılamaya yardım eder)
+  mic.setHints(cur < game.steps.length ? game.steps[cur].notes.filter((n) => n.state === 'pending').map((n) => n.midi) : []);
   // Sıradaki 6 adımın sıra numarası düşen çubukların üstünde görünsün
   const order = new Map();
   for (let i = cur; i < Math.min(game.steps.length, cur + 6); i++) {
@@ -253,6 +257,7 @@ function frame(t) {
   renderer.draw({ notes: game.notes, songTime: game.songTime, expectedHand, waiting: game.waiting, order });
 
   $('#progress-fill').style.width = (game.progress * 100).toFixed(1) + '%';
+  $('#time-label').textContent = fmtTime(game.songTime / game.opts.speed) + ' / ' + fmtTime(game.song.duration / game.opts.speed);
   $('#play-hint').textContent = game.waiting ? 'Bekliyor: ' + expected.map((n) => midiToName(n.midi)).join(' ') : '';
 
   if (game.finished) return showResults();
@@ -269,7 +274,7 @@ function renderSequence(cur) {
   if (key === seqKey) return;
   seqKey = key;
   if (cur >= steps.length) { seqEl.innerHTML = ''; return; }
-  const label = (st) => st.notes.map((n) => midiToName(n.midi)).sort().join(' + ');
+  const label = (st) => [...st.notes].sort((a, b) => a.midi - b.midi).map((n) => midiToName(n.midi)).join(' + ');
   // Adımları ardışık tekrarlara göre grupla (mevcut adımın biraz gerisinden başla)
   const runs = [];
   let start = cur;
@@ -310,6 +315,11 @@ function renderSequence(cur) {
   });
 }
 
+function fmtTime(sec) {
+  sec = Math.max(0, Math.round(sec));
+  return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+}
+
 function showResults() {
   const r = game.results();
   $('#r-acc').textContent = r.accuracy + '%';
@@ -321,6 +331,31 @@ function showResults() {
 $('#again-btn').onclick = () => getSong(selected).then((s) => s && startGame(s));
 
 $('#play-back').onclick = () => go('setup');
+
+// ---------- İleri / geri sarma ----------
+function seekBy(sec) {
+  if (!game) return;
+  game.seek(game.songTime + sec * game.opts.speed);
+  seqKey = '';
+  userScrolledAt = 0;
+}
+$('#rew-btn').onclick = () => seekBy(-5);
+$('#fwd-btn').onclick = () => seekBy(5);
+// İlerleme çubuğuna dokun/sürükle: o noktaya git
+const progressEl = document.querySelector('.progress');
+let seekingBar = false;
+function seekToPointer(e) {
+  if (!game) return;
+  const r = progressEl.getBoundingClientRect();
+  const frac = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+  game.seek(frac * game.song.duration);
+  seqKey = '';
+  userScrolledAt = 0;
+}
+progressEl.addEventListener('pointerdown', (e) => { seekingBar = true; progressEl.setPointerCapture(e.pointerId); seekToPointer(e); });
+progressEl.addEventListener('pointermove', (e) => { if (seekingBar) seekToPointer(e); });
+progressEl.addEventListener('pointerup', () => { seekingBar = false; });
+progressEl.addEventListener('pointercancel', () => { seekingBar = false; });
 $('#pause-btn').onclick = () => { if (game) { game.paused = true; $('#paused').classList.remove('hidden'); } };
 $('#resume-btn').onclick = () => { if (game) { game.paused = false; lastT = performance.now(); $('#paused').classList.add('hidden'); } };
 $('#restart-btn').onclick = () => game && startGame(game.song);
@@ -338,10 +373,10 @@ window.addEventListener('resize', () => {
 
 // ---------- Giriş olaylarını oyuna ve ekrana bağla ----------
 const lastNotes = [];
-input.on('noteon', ({ midi, source }) => {
+input.on('noteon', ({ midi, source, chordPart }) => {
   let kind = 'neutral';
   if (game && current === 'play') {
-    const res = game.noteOn(midi);
+    const res = game.noteOn(midi, !!chordPart);
     kind = res === 'correct' ? 'correct' : res === 'wrong' ? 'wrong' : 'neutral';
   }
   const r = current === 'tuner' ? tunerRenderer : renderer;

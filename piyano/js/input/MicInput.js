@@ -9,6 +9,7 @@
 //    Böylece hâlâ çınlayan eski nota yeni notayla karışmaz.
 // 3) Oktav düzeltme: piyanonun bas notalarında temel frekans zayıf olabilir; 1.5f gibi
 //    "ara" harmoniklere bakılarak bir oktav yukarı/aşağı hatası düzeltilir.
+// 4) Akor: ilk notanın harmonikleri çıkarılıp kalan enerjide başka notalar aranır.
 // YIN (yin.js) ise akort ekranındaki sürekli frekans gösterimi için kullanılır.
 
 import { createYin } from './yin.js';
@@ -29,6 +30,7 @@ export class MicInput {
   constructor() {
     this.onEvent = () => {};
     this.running = false;
+    this.hints = new Set();
     this.setSensitivity(60);
   }
 
@@ -96,6 +98,7 @@ export class MicInput {
     this.lastYin = null;
     this.lastOnAt = -Infinity;
     this.rmsHist = [];
+    this.chord = [];
     this.onsetStrength = 0;
   }
 
@@ -173,29 +176,92 @@ export class MicInput {
   }
 
   // Bir frekans çevresindeki (±yarım ton içindeki) en güçlü yeni enerji
-  peak(freq) {
+  peak(freq, arr = this.acc) {
     const c = freq / this.binHz;
-    const w = Math.max(1, Math.round(c * 0.025)); // ~yarım tonun yarısı
-    const lo = Math.max(this.loBin, Math.round(c) - w);
-    const hi = Math.min(this.hiBin, Math.round(c) + w);
-    let best = 0;
-    for (let k = lo; k <= hi; k++) if (this.acc[k] > best) best = this.acc[k];
-    return best;
+    const w = Math.max(1, Math.round(c * 0.03)); // ~yarım ton
+    const lo = Math.max(this.loBin + 1, Math.round(c) - w);
+    const hi = Math.min(this.hiBin - 1, Math.round(c) + w);
+    let best = 0, bk = -1;
+    for (let k = lo; k <= hi; k++) if (arr[k] > best) { best = arr[k]; bk = k; }
+    if (bk < 0) return 0;
+    // Gerçek bir tepe mi, yoksa komşu notadan sızan enerji mi? Tepenin tam frekansını bul
+    // ve beklenen frekanstan çok uzaksa (komşu yarım tona yakınsa) sayma.
+    if (arr[bk - 1] > best || arr[bk + 1] > best) return best * 0.2; // pencerenin kenarında, tepe dışarıda
+    const a = arr[bk - 1], b = best, g = arr[bk + 1];
+    const d = a - 2 * b + g;
+    const kk = d !== 0 ? bk + (0.5 * (a - g)) / d : bk;
+    const cents = 1200 * Math.log2((kk * this.binHz) / freq);
+    const off = Math.abs(cents);
+    if (off > 45) return best * 0.2;
+    return off > 30 ? best * 0.6 : best;
   }
 
-  score(midi) {
+  score(midi, arr = this.acc) {
     const f = midiToFreq(midi);
     let s = 0;
     for (let h = 1; h <= WEIGHTS.length; h++) {
       const fh = f * h;
       if (fh > 6000) break;
-      s += WEIGHTS[h - 1] * this.peak(fh);
+      s += WEIGHTS[h - 1] * this.peak(fh, arr);
     }
     // Temel frekansta hiç enerji olmayan adaylara ceza (sahte alt oktavları eler)
-    const fund = this.peak(f);
-    const second = this.peak(f * 2);
+    const fund = this.peak(f, arr);
+    const second = this.peak(f * 2, arr);
     if (fund < 0.03 * second) s *= 0.5;
     return s;
+  }
+
+  // Bir notanın harmoniklerini spektrumdan sil (akorda sıradaki notayı bulmak için)
+  removeHarmonics(midi, arr) {
+    const f = midiToFreq(midi);
+    for (let h = 1; h <= 10; h++) {
+      const c = (f * h) / this.binHz;
+      if (c > this.hiBin) break;
+      const w = Math.max(1, Math.round(c * 0.03));
+      for (let k = Math.max(this.loBin, Math.round(c) - w); k <= Math.min(this.hiBin, Math.round(c) + w); k++) arr[k] *= 0.15;
+    }
+  }
+
+  // Akor: ilk notadan sonra kalan enerjide başka notalar ara.
+  // Uygulama "beklenen notaları" ipucu olarak verirse, onlar için eşik daha düşük.
+  findChordNotes(first, firstScore) {
+    const work = this.acc.slice();
+    const odd = (m, arr) => { const f = midiToFreq(m); return this.peak(f, arr) + this.peak(f * 3, arr); };
+    const picked = [first];
+    this.removeHarmonics(first, work);
+    for (let round = 0; round < 3; round++) {
+      let best = null, bestScore = 0;
+      for (let m = MIN_MIDI; m <= MAX_MIDI; m++) {
+        if (picked.includes(m)) continue;
+        const s = this.score(m, work);
+        if (s > bestScore) { bestScore = s; best = m; }
+      }
+      if (best === null) break;
+      const hinted = this.hints.has(best);
+      if (bestScore < (hinted ? 0.22 : 0.55) * firstScore) break;
+      if (odd(best, work) < 0.25 * this.peak(midiToFreq(best) * 2, work)) break; // sadece harmonik kalıntısı
+      // Temel frekansı gerçekten duyulmalı (diğer notaların harmoniklerinden "hayalet" nota çıkmasın)
+      const fb = midiToFreq(best);
+      const fundOk = this.peak(fb, work) >= (hinted ? 0.15 : 0.35) * Math.max(this.peak(fb * 2, work), this.peak(fb * 3, work));
+      if (!fundOk) break;
+      // Seçilen bir notanın oktavı ancak bekleniyorsa eklenir
+      if (!hinted && picked.some((p) => Math.abs(p - best) % 12 === 0)) break;
+      picked.push(best);
+      this.removeHarmonics(best, work);
+    }
+    // İpucu olarak beklenen ama bulunamayan notalar: orijinal spektrumda kanıt var mı?
+    for (const h of this.hints) {
+      if (picked.includes(h) || h < MIN_MIDI || h > MAX_MIDI) continue;
+      const f = midiToFreq(h);
+      const own = this.peak(f) + this.peak(f * 3);
+      if (this.score(h) > 0.25 * firstScore && own > 0.2 * (this.peak(midiToFreq(first)) + this.peak(midiToFreq(first) * 3))) picked.push(h);
+    }
+    return picked;
+  }
+
+  // Uygulama şu an beklenen notaları bildirebilir (akor algılamayı kolaylaştırır)
+  setHints(midis) {
+    this.hints = new Set(midis);
   }
 
   decide(rms, now) {
@@ -219,7 +285,11 @@ export class MicInput {
     const octaves = [];
     for (let m = pc; m <= MAX_MIDI; m += 12) if (m >= MIN_MIDI) octaves.push([m, odd(m)]);
     const maxOdd = Math.max(...octaves.map(([, o]) => o));
-    const pick = octaves.find(([, o]) => o > 0.25 * maxOdd);
+    // Alt oktav seçilecekse kendi temel frekansı da gerçekten duyulmalı
+    const pick = octaves.find(([m, o]) => {
+      const f = midiToFreq(m);
+      return o > 0.25 * maxOdd && this.peak(f) > 0.15 * this.peak(f * 2);
+    });
     if (pick) best = pick[0];
 
     // Temiz tek nota varsa oktavı YIN'e sor (çınlayan eski notayı yok sayarak)
@@ -234,10 +304,15 @@ export class MicInput {
     if (best === this.active && now - this.lastOnAt < 280) return;
     // Bir tuşa basınca iki nota yanmasın: çok kısa sürede ikinci nota ancak güçlü vuruşla
     if (now - this.lastOnAt < DOUBLE_MS && this.onsetStrength < 0.35) return;
+    const notes = this.findChordNotes(best, this.score(best));
     if (this.active !== null) this.onEvent('noteoff', { midi: this.active });
+    for (const m of this.chord) if (m !== this.active) this.onEvent('noteoff', { midi: m });
     this.active = best;
+    this.chord = notes;
     this.lastOnAt = now;
-    this.onEvent('noteon', { midi: best, velocity: Math.min(1, rms * 10), freq: midiToFreq(best) });
+    notes.forEach((m, i) => {
+      this.onEvent('noteon', { midi: m, velocity: Math.min(1, rms * 10), freq: midiToFreq(m), chordPart: i > 0 });
+    });
   }
 
   stop() {

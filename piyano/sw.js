@@ -1,6 +1,6 @@
 // Servis çalışanı: uygulamayı çevrimdışı da açılabilir yapar.
 // Uygulama dosyalarında değişiklik yaptığında VERSION'ı artır.
-const VERSION = 'piano-v3';
+const VERSION = 'piano-v4';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/style.css',
   'js/app.js', 'js/game.js', 'js/renderer.js', 'js/song.js', 'js/notes.js',

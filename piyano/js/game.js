@@ -84,8 +84,26 @@ export class Game {
     );
   }
 
+  // Şarkıda belirli bir zamana atla (ileri/geri sarma).
+  // Atlanan notalar skora sayılmaz; geri sarınca o kısım yeniden çalınabilir.
+  seek(t) {
+    t = Math.max(0, Math.min(this.song.duration, t));
+    for (const n of this.notes) {
+      if (n.time >= t - 0.01) n.state = 'pending';
+      else if (n.state === 'pending') n.state = 'skipped';
+    }
+    this.hits = this.hits.filter((h) => h.expected < t - 0.01);
+    this.songTime = t;
+    this.nextIdx = 0;
+    this.waiting = false;
+    this.waitGroup = [];
+    this.finished = false;
+    this.seeked = true;
+  }
+
   // Bir tuşa basıldı. Dönüş: 'correct' | 'wrong' | 'free'
-  noteOn(midi) {
+  // secondary: akorda ikinci/üçüncü algılanan nota (eşleşmezse ceza verilmez)
+  noteOn(midi, secondary = false) {
     if (this.paused || this.finished) return 'free';
     const matches = (n) =>
       n.midi === midi || (this.opts.octaveTolerant && (n.midi - midi) % 12 === 0);
@@ -102,7 +120,7 @@ export class Game {
       this.hits.push({ expected: n.time, actual: this.realTime });
       return 'correct';
     }
-    if (window.length) {
+    if (window.length && !secondary) {
       this.wrong++;
       return 'wrong';
     }
@@ -110,7 +128,7 @@ export class Game {
   }
 
   results() {
-    const total = this.required.length;
+    const total = this.required.filter((n) => n.state !== 'skipped').length;
     const hit = this.required.filter((n) => n.state === 'hit').length;
     const accuracy = total + this.wrong ? (hit / (total + this.wrong)) * 100 : 0;
 

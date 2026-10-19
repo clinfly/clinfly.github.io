@@ -86,7 +86,10 @@
   <section id="play" class="screen play">
     <header class="playbar">
       <button class="btn ghost icon" id="play-back" aria-label="Çık">✕</button>
-      <div class="progress"><div id="progress-fill"></div></div>
+      <button class="btn ghost icon" id="rew-btn" aria-label="5 saniye geri">⏪</button>
+      <div class="progress" title="Dokunarak veya sürükleyerek şarkıda ileri/geri git"><div id="progress-fill"></div></div>
+      <button class="btn ghost icon" id="fwd-btn" aria-label="5 saniye ileri">⏩</button>
+      <span id="time-label" class="time-label">0:00 / 0:00</span>
       <div id="play-hint" class="hint"></div>
       <div class="meter" title="Mikrofon seviyesi"><div id="play-level"></div></div>
       <button class="btn ghost icon" id="pause-btn" aria-label="Duraklat">❚❚</button>
