@@ -105,20 +105,29 @@ let selected = LIBRARY[0];
 async function renderLibrary() {
   const lib = $('#library');
   lib.innerHTML = '';
+  const bests = readJSON('piano.best');
   for (const entry of LIBRARY) {
     const card = document.createElement('button');
     card.className = 'song-card';
-    card.innerHTML = `<div class="art"></div><div><h3></h3><p class="muted small"></p><span class="badge">Yükleniyor…</span></div>`;
+    card.innerHTML = `<div class="art"></div><div><h3></h3><p class="muted small"></p><span class="badge">Yükleniyor…</span><span class="stars-mini"></span></div><span class="play-ic">▶</span>`;
     card.querySelector('h3').textContent = entry.title;
     card.querySelector('p').textContent = entry.artist;
     card.onclick = () => openSetup(entry);
     lib.appendChild(card);
+    const best = bests[entry.id];
+    if (best) card.querySelector('.stars-mini').textContent = '★'.repeat(best.stars) + '☆'.repeat(3 - best.stars);
     const song = await getSong(entry);
     const badge = card.querySelector('.badge');
     badge.textContent = song ? `${song.notes.length} nota · hazır` : 'MIDI dosyası gerekli';
     badge.classList.add(song ? 'ok' : 'no');
   }
 }
+$('#hero-start').onclick = () => openSetup(LIBRARY[0]);
+$('#midi-file-home').onchange = async (e) => {
+  selected = LIBRARY[0];
+  await openSetup(selected);
+  await onMidiFile(e);
+};
 
 async function getSong(entry) {
   if (!songCache.has(entry.id)) {

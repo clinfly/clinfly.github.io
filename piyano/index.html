@@ -17,17 +17,36 @@
 </head>
 <body>
   <!-- Ana ekran / kütüphane -->
-  <section id="home" class="screen active">
-    <header class="topbar">
-      <h1>🎹 Piyano Öğren</h1>
-      <div class="spacer"></div>
-      <button class="btn ghost" data-go="tuner">Akort testi</button>
-      <button class="btn ghost" data-go="settings">Ayarlar</button>
-    </header>
+  <section id="home" class="screen active home">
+    <div class="home-bg" aria-hidden="true">
+      <i style="--x:8%;--d:7s;--h:70px;--c:var(--accent)"></i>
+      <i style="--x:19%;--d:9s;--h:40px;--c:var(--left);animation-delay:-3s"></i>
+      <i style="--x:33%;--d:8s;--h:90px;--c:var(--good);animation-delay:-5s"></i>
+      <i style="--x:47%;--d:10s;--h:55px;--c:var(--accent);animation-delay:-1s"></i>
+      <i style="--x:61%;--d:7.5s;--h:80px;--c:var(--left);animation-delay:-6s"></i>
+      <i style="--x:74%;--d:9.5s;--h:45px;--c:var(--good);animation-delay:-2s"></i>
+      <i style="--x:88%;--d:8.5s;--h:65px;--c:var(--accent);animation-delay:-4s"></i>
+    </div>
     <main class="home-main">
-      <h2 class="section-title">Kütüphane</h2>
-      <div id="library" class="library"></div>
+      <div class="hero">
+        <img class="hero-logo" src="icons/icon-192.png" alt="">
+        <h1 class="hero-title">Piyano <span>Öğren</span></h1>
+        <p class="hero-sub">Gerçek piyanonu çal, telefon dinlesin. Düşen notaları takip et, doğru tuşta yeşil yansın.</p>
+        <button class="btn primary big hero-start" id="hero-start">▶&nbsp; Çalmaya başla</button>
+        <div class="tiles">
+          <button class="tile" data-go="tuner"><span class="tile-ic">🎙️</span><span><b>Akort testi</b><small>Mikrofonu dene</small></span></button>
+          <button class="tile" data-go="settings"><span class="tile-ic">⚙️</span><span><b>Ayarlar</b><small>Hassasiyet, nota adları</small></span></button>
+        </div>
+      </div>
+      <div class="lib-col">
+        <h2 class="section-title">Şarkılar</h2>
+        <div id="library" class="library"></div>
+        <label class="upload-tile file-btn">＋ MIDI dosyası yükle
+          <input id="midi-file-home" type="file" accept=".mid,.midi,audio/midi,audio/x-midi">
+        </label>
+      </div>
     </main>
+    <div class="home-keys" aria-hidden="true"></div>
   </section>
 
   <!-- Şarkı ayarları -->
