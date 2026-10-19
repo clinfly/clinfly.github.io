@@ -281,7 +281,10 @@ function startGame(song, mode = {}) {
   updateStreak();
   $('#paused').classList.add('hidden');
   requestAnimationFrame(() => {
-    renderer.resize();
+    const ms = song.notes.map((n) => n.midi);
+    if (ms.length) renderer.setRange(Math.min(...ms), Math.max(...ms));
+    else renderer.resize();
+    renderer.scroller.scrollLeft = 0;
     const first = game.required[0] || game.notes[0];
     if (first) renderer.centerOn(first.midi);
     countIn = settings.metro ? { beat: beatSec() / game.opts.speed * 1000, done: 0 } : null;

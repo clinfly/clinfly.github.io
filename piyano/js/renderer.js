@@ -35,6 +35,9 @@ export class Renderer {
     this.particles = [];       // doğru basışta çıkan kıvılcımlar
     this.popups = [];          // "Harika!" gibi kısa yazılar
     this.showBarLabels = true;
+    this.lo = LOW_MIDI;
+    this.hi = HIGH_MIDI;
+    this.fit = false; // true: tüm aralık kaydırmadan ekrana sığar
     this.resize();
   }
 
@@ -53,6 +56,7 @@ export class Renderer {
     // Beyaz tuş genişliği: telefonda yatayda ~2 oktav görünsün
     const whiteCount = this.countWhites();
     this.whiteW = Math.max(36, Math.min(64, w / 15));
+    if (this.fit) this.whiteW = Math.max(16, Math.min(this.whiteW, w / whiteCount));
     if (this.whiteW * whiteCount < w) this.whiteW = w / whiteCount; // geniş ekranda tamamı sığsın
     this.totalW = this.whiteW * whiteCount;
     this.spacer.style.width = this.totalW + 'px';
@@ -65,14 +69,14 @@ export class Renderer {
 
   countWhites() {
     let c = 0;
-    for (let m = LOW_MIDI; m <= HIGH_MIDI; m++) if (!isBlack(m)) c++;
+    for (let m = this.lo; m <= this.hi; m++) if (!isBlack(m)) c++;
     return c;
   }
 
   buildKeys() {
     this.keys = new Map();
     let wi = 0;
-    for (let m = LOW_MIDI; m <= HIGH_MIDI; m++) {
+    for (let m = this.lo; m <= this.hi; m++) {
       if (isBlack(m)) {
         const bw = this.whiteW * 0.6;
         this.keys.set(m, { x: wi * this.whiteW - bw / 2, w: bw, black: true });
@@ -93,6 +97,24 @@ export class Renderer {
     }
     for (const [m, k] of this.keys) if (!k.black && ax >= k.x && ax < k.x + k.w) return m;
     return null;
+  }
+
+  // Klavyeyi şarkının nota aralığına daralt (iki el birlikte, kaydırmadan görünsün)
+  setRange(lo, hi, fit = true) {
+    lo = Math.max(LOW_MIDI, lo); hi = Math.min(HIGH_MIDI, hi);
+    if (isBlack(lo)) lo--;
+    if (isBlack(hi)) hi++;
+    // Kenarlarda birer beyaz tuş pay bırak
+    if (lo > LOW_MIDI) { lo--; if (isBlack(lo)) lo--; }
+    if (hi < HIGH_MIDI) { hi++; if (isBlack(hi)) hi++; }
+    // En az 2 oktav göster (çok dar aralıkta tuşlar aşırı büyümesin)
+    while (hi - lo < 24) {
+      if (lo > LOW_MIDI) { lo--; if (isBlack(lo)) lo--; }
+      if (hi - lo < 24 && hi < HIGH_MIDI) { hi++; if (isBlack(hi)) hi++; }
+      if (lo <= LOW_MIDI && hi >= HIGH_MIDI) break;
+    }
+    this.lo = lo; this.hi = hi; this.fit = fit;
+    this.resize();
   }
 
   // Ekrandaki noktada düşen nota çubuğu var mı?
